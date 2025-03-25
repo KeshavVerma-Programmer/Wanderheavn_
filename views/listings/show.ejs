@@ -1,0 +1,109 @@
+<% layout("/layouts/boilerplate") %>
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" />
+  <style>
+    .listing-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .owner-info {
+      font-style: italic;
+      color: #555;
+    }
+    .starability-slot label {
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .listing-image {
+      width: 100%;
+      height: auto;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<script>
+  const mapToken = "<%= process.env.MAP_TOKEN %>";
+  const listing = <%- JSON.stringify(listing) %>;
+</script>
+<script type="module" src="/js/map.js"></script>
+
+<div class="container mt-4 listing-container">
+  <h2><%= listing.title %></h2>
+  <img src="<%= listing.images.length > 0 ? listing.images[0].url : '/default-image.jpg' %>" class="listing-image" alt="Listing Image">
+  
+  <div class="mt-3">
+    <p class="owner-info">Owned by <em><%= listing.owner ? listing.owner.username || "Unknown Owner" : "Owner information missing" %></em></p>
+    <p><strong>Category - </strong> <%= listing.category %></p>
+    <p><strong>Description - </strong> <%= listing.description %></p>
+    <p><strong>Price - </strong> &#8377; <%= listing.price.toLocaleString("en-IN") %></p>
+    <p><strong>Location - </strong> <%= listing.location %>, <%= listing.country %></p>
+    <p><strong>Check-in - </strong> <%= listing.formattedCheckInTime %> | <strong>Check-out:</strong> <%= listing.formattedCheckOutTime %></p>
+    <p><strong>Status - </strong> <%= listing.status %></p>
+  </div>
+
+  <% if (currUser && currUser.role === 'user') { %>
+    <a href="/listings/<%= listing._id %>/book" class="btn btn-primary">Book Now</a>
+  <% } %>
+
+  <% if(currUser && currUser.role === 'host' && listing.owner._id.equals(currUser._id)) { %>
+    <div class="mt-3">
+      <a href="/listings/<%= listing._id %>/edit" class="btn btn-warning">Edit</a>
+      <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="d-inline">
+        <button class="btn btn-danger">Delete</button>
+      </form>
+    </div>
+  <% } %>
+  
+  <hr>
+  <h4>Leave a Review</h4>
+  <% if(currUser) { %>
+    <form action="/listings/<%=listing._id%>/reviews" method="POST">
+      <label>Rating:</label>
+      <div class="starability-slot">
+        <input type="radio" id="rate5" name="review[rating]" value="5" checked><label for="rate5">★★★★★</label>
+        <input type="radio" id="rate4" name="review[rating]" value="4"><label for="rate4">★★★★</label>
+        <input type="radio" id="rate3" name="review[rating]" value="3"><label for="rate3">★★★</label>
+        <input type="radio" id="rate2" name="review[rating]" value="2"><label for="rate2">★★</label>
+        <input type="radio" id="rate1" name="review[rating]" value="1"><label for="rate1">★</label>
+      </div>
+      <label>Comment - </label>
+      <textarea name="review[comment]" class="form-control" required></textarea>
+      <button class="btn btn-outline-dark mt-2">Submit</button>
+    </form>
+  <% } %>
+</div>
+
+<!-- Map Section -->
+<div class="col-md-8 offset-md-2 mt-4">
+  <h3>Where <%= listing.title %></h3>
+  <div id="map" style="height: 400px;"></div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (listing.geometry && listing.geometry.coordinates) {
+      const map = new maplibregl.Map({
+        container: 'map',
+        style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${mapToken}`,
+        center: listing.geometry.coordinates,
+        zoom: 9
+      });
+      new maplibregl.Marker({ color: "red" })
+        .setLngLat(listing.geometry.coordinates)
+        .setPopup(new maplibregl.Popup().setHTML(`
+          <h4>${listing.title}</h4>
+          <p>${listing.location}</p>
+          <p>Price:&#8377;<%= listing.price.toLocaleString("en-IN") %></p>
+        `))
+        .addTo(map);
+    } else {
+      document.getElementById('map').innerHTML = "<p>Location data is unavailable.</p>";
+    }
+  });
+</script>

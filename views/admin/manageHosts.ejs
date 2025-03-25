@@ -1,0 +1,89 @@
+<% layout("/layouts/boilerplate") %>
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-uppercase fw-bold">Manage Hosts</h2>
+
+    <!-- Search Bar -->
+    <div class="row mb-3">
+        <div class="col-md-6 offset-md-3">
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="form-control" 
+                placeholder="Search users by username or email..."
+            />
+        </div>
+    </div>
+
+    <% if(hosts.length > 0) { %>
+        <div class="table-responsive">
+            <table class="table table-striped" id="userTable">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% hosts.forEach(host => { %>
+                        <tr>
+                            <td><%= host.username %></td>
+                            <td><%= host.email %></td>
+                            <td>
+                                <span class="badge 
+                                    <%= host.role === 'admin' ? 'bg-primary' 
+                                    : host.role === 'host' ? 'bg-warning' 
+                                    : 'bg-secondary' %>">
+                                    <%= host.role %>
+                                </span>
+                            </td>
+                            <td>
+                                <!-- Delete Button -->
+                                <form 
+    action="/admin/manage-hosts/<%= host._id %>/delete?_method=DELETE" 
+    method="POST"
+    class="d-inline"
+    onsubmit="return confirmDelete('<%= host.username %>');">
+    <button class="btn btn-sm btn-danger">Delete</button>
+
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <p class="text-center">No Hosts available.</p>
+    <% } %>
+</div>
+
+<script>
+    // Delete Confirmation
+    function confirmDelete(username) {
+        return confirm(`Are you sure you want to delete the user: "${username}"?`);
+    }
+
+    // Promotion Confirmation
+    function confirmPromotion(username) {
+        return confirm(`Are you sure you want to promote "${username}" to admin?`);
+    }
+
+    // Search Filter Functionality
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('keyup', function() {
+        const filter = searchInput.value.toLowerCase();
+        const rows = document.querySelectorAll('#userTable tbody tr');
+
+        rows.forEach(row => {
+            const username = row.cells[0].innerText.toLowerCase();
+            const email = row.cells[1].innerText.toLowerCase();
+
+            if (username.includes(filter) || email.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+</script>

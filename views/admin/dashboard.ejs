@@ -1,0 +1,58 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4 text-uppercase fw-bold">Admin Dashboard</h1>
+
+    <div class="row g-4">
+        <!-- Total Users -->
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3 mb-3 border-primary">
+                <h5 class="card-title"><i class="fas fa-users me-2"></i> Total Users</h5>
+                <p class="display-6 fw-bold text-primary mb-3"><%= totalUsers %></p>
+                <a href="/admin/manage-users" class="btn btn-primary w-100">Manage Users</a>
+            </div>
+        </div>
+      
+        <div class="row g-4">
+            <!-- Total  HOSTS-->
+            <div class="col-md-4">
+                <div class="card shadow-sm p-3 mb-3 border-primary">
+                    <h5 class="card-title"><i class="fas fa-users me-2"></i> Total Hosts</h5>
+                    <p class="display-6 fw-bold text-primary mb-3"><%=   totalhosts %></p>
+                    <a href="/admin/manage-hosts" class="btn btn-primary w-100">Manage Hosts</a>
+                </div>
+            </div>
+        <!-- Total Listings -->
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3 mb-3 border-success">
+                <h5 class="card-title"><i class="fas fa-home me-2"></i> Total Listings</h5>
+                <p class="display-6 fw-bold text-success mb-3"><%= totalListings %></p>
+                <a href="/admin/manage-listings" class="btn btn-success w-100">Manage Listings</a>
+            </div>
+        </div>
+ 
+        <!-- Pending Reviews -->
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3 mb-3 <%= pendingReviews > 10 ? 'border-danger' : 'border-warning' %>">
+                <h5 class="card-title">
+                    <i class="fas fa-exclamation-circle me-2"></i> Pending Reviews
+                </h5>
+                <p class="display-6 fw-bold <%= pendingReviews > 10 ? 'text-danger' : 'text-warning' %> mb-3">
+                    <%= pendingReviews %>
+                </p>
+                <a href="/admin/manage-reviews" class="btn btn-warning w-100">Manage Reviews</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm p-3">
+                <h5 class="card-title"><i class="fas fa-chart-line me-2"></i> System Analytics</h5>
+                <p>Monitor platform performance, user engagement, and insights.</p>
+                <a href="/admin/analytics" class="btn btn-info w-100">View Analytics</a>
+            </div>
+        </div>
+    </div>
+</div>

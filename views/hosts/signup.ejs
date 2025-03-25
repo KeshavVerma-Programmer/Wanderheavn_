@@ -1,0 +1,129 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container mt-4">
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-lg rounded-4 border-0">
+                <div class="card-body p-3">
+                    <h2 class="text-center mb-2 fw-bold text-primary">Host Signup</h2>
+
+                    <!-- Flash Messages for Error/Success -->
+                    <% if (messages.error && messages.error.length) { %>
+                        <div class="alert alert-danger">
+                            <%= messages.error %>
+                        </div>
+                    <% } %>
+
+                    <% if (messages.success && messages.success.length) { %>
+                        <div class="alert alert-success">
+                            <%= messages.success %>
+                        </div>
+                    <% } %>
+
+                    <form action="/host/signup" method="POST" class="needs-validation" novalidate>
+                        <!-- Username -->
+                        <div class="mb-2">
+                            <label for="username" class="form-label">Username</label>
+                            <input 
+                                name="username" 
+                                id="username" 
+                                type="text" 
+                                class="form-control" 
+                                value="<%= username %>"
+                                required
+                            />
+                        </div>
+                    
+                        <!-- Email -->
+                        <div class="mb-2">
+                            <label for="email" class="form-label">Email</label>
+                            <input 
+                                name="email" 
+                                id="email" 
+                                type="email" 
+                                class="form-control" 
+                                value="<%= email %>"
+                                required
+                            />
+                        </div>
+                    
+                        <!-- Phone -->
+                        <div class="mb-2">
+                            <label for="phone" class="form-label">Contact Number</label>
+                            <input 
+                                name="phone" 
+                                id="phone" 
+                                type="tel" 
+                                pattern="[0-9]{10}" 
+                                class="form-control"
+                                value="<%= phone %>"
+                                required
+                            />
+                        </div>
+                    
+                        <!-- Password -->
+                        <div class="mb-2">
+                            <label for="password" class="form-label">Password</label>
+                            <input 
+                                name="password" 
+                                id="password" 
+                                type="password" 
+                                class="form-control"
+                                required
+                            />
+                        </div>
+                    
+                        <!-- Bank Details -->
+                        <h4 class="text-center mb-2 text-primary">Bank Details</h4>
+                        
+                        <div class="mb-2">
+                            <label for="accountHolderName" class="form-label">Account Holder Name</label>
+                            <input name="accountHolderName" id="accountHolderName" type="text" class="form-control" required />                     
+                        </div>
+                    
+                        <div class="mb-2">
+                            <label for="accountNumber" class="form-label">Account Number</label>
+                            <input name="accountNumber" id="accountNumber" type="text" class="form-control" required />
+                        </div>
+                    
+                        <div class="mb-2">
+                            <label for="ifscCode" class="form-label">IFSC Code</label>
+                            <input name="ifscCode" id="ifscCode" type="text" class="form-control" required />
+                        </div>
+                    
+                        <div class="mb-2">
+                            <label for="bankName" class="form-label">Bank Name</label>
+                            <input name="bankName" id="bankName" type="text" class="form-control" required />
+                        </div>
+                    
+                        <!-- Signup Button -->
+                        <button class="btn btn-primary w-100 fw-bold">Signup as Host</button>
+                    </form>
+                    
+                    <!-- Additional Links -->
+                    <div class="text-center mt-2">
+                        <p>Want to sign up as a user? <a href="/signup" class="text-primary fw-bold">Signup as a User</a></p>
+                        <p>Already have an account? <a href="/host/login" class="text-primary fw-bold">Login as Host</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Bootstrap Form Validation
+    (function () {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.from(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>

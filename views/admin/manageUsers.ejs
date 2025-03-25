@@ -1,0 +1,89 @@
+<% layout("/layouts/boilerplate") %>
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-uppercase fw-bold">Manage Users</h2>
+
+    <!-- Search Bar -->
+    <div class="row mb-3">
+        <div class="col-md-6 offset-md-3">
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="form-control" 
+                placeholder="Search users by username or email..."
+            />
+        </div>
+    </div>
+
+    <% if(users.length > 0) { %>
+        <div class="table-responsive">
+            <table class="table table-striped" id="userTable">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(user => { %>
+                        <tr>
+                            <td><%= user.username %></td>
+                            <td><%= user.email %></td>
+                            <td>
+                                <span class="badge 
+                                    <%= user.role === 'admin' ? 'bg-primary' 
+                                    : user.role === 'host' ? 'bg-warning' 
+                                    : 'bg-secondary' %>">
+                                    <%= user.role %>
+                                </span>
+                            </td>
+                            <td>
+                                <!-- Delete Button -->
+                                <form 
+    action="/admin/manage-users/<%= user._id %>/delete?_method=DELETE" 
+    method="POST"
+    class="d-inline"
+    onsubmit="return confirmDelete('<%= user.username %>');">
+    <button class="btn btn-sm btn-danger">Delete</button>
+
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <p class="text-center">No users available.</p>
+    <% } %>
+</div>
+
+<script>
+    // Delete Confirmation
+    function confirmDelete(username) {
+        return confirm(`Are you sure you want to delete the user: "${username}"?`);
+    }
+
+    // Promotion Confirmation
+    function confirmPromotion(username) {
+        return confirm(`Are you sure you want to promote "${username}" to admin?`);
+    }
+
+    // Search Filter Functionality
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('keyup', function() {
+        const filter = searchInput.value.toLowerCase();
+        const rows = document.querySelectorAll('#userTable tbody tr');
+
+        rows.forEach(row => {
+            const username = row.cells[0].innerText.toLowerCase();
+            const email = row.cells[1].innerText.toLowerCase();
+
+            if (username.includes(filter) || email.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+</script>

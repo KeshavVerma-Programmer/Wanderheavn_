@@ -1,0 +1,100 @@
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-uppercase fw-bold">Manage Bookings</h2>
+
+    <!-- Search & Filter Section -->
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <input
+            type="text"
+            id="bookingSearch"
+            class="form-control w-50"
+            placeholder="Search by Guest Name or Property"
+        />
+
+        <select id="statusFilter" class="form-select w-25">
+            <option value="all">All Status</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Pending">Pending</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+    </div>
+
+    <% if(bookings.length > 0) { %>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Guest Name</th>
+                        <th>Property</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingTableBody">
+                    <% bookings.forEach(booking => { %>
+                        <tr>
+                            <td><%= booking.guest.name %></td>
+                            <td><%= booking.property.title %></td>
+                            <td><%= new Date(booking.checkInDate).toLocaleDateString('en-IN') %></td>
+                            <td><%= new Date(booking.checkOutDate).toLocaleDateString('en-IN') %></td>
+                            <td>
+                                <span class="badge 
+                                    <%= booking.status === 'Confirmed' ? 'bg-success' 
+                                    : booking.status === 'Pending' ? 'bg-warning' 
+                                    : 'bg-danger' %>">
+                                    <i class="<%= booking.status === 'Confirmed' ? 'fas fa-check-circle' 
+                                        : booking.status === 'Pending' ? 'fas fa-hourglass-half' 
+                                        : 'fas fa-times-circle' %>">
+                                    </i> 
+                                    <%= booking.status %>
+                                </span>
+                            </td>
+                            <td>
+                                <% if(booking.status === 'Pending') { %>
+                                    <form action="/host/bookings/<%= booking._id %>/approve" method="POST" class="d-inline">
+                                        <button class="btn btn-sm btn-success">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form action="/host/bookings/<%= booking._id %>/reject" method="POST" class="d-inline">
+                                        <button class="btn btn-sm btn-danger">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                <% } else { %>
+                                    <span class="text-muted">No Actions</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <p class="text-center text-warning">No bookings available.</p>
+    <% } %>
+</div>
+
+<script>
+    // Search & Filter Functionality
+    document.getElementById("bookingSearch").addEventListener("input", filterBookings);
+    document.getElementById("statusFilter").addEventListener("change", filterBookings);
+
+    function filterBookings() {
+        const searchValue = document.getElementById("bookingSearch").value.toLowerCase();
+        const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
+        const rows = document.querySelectorAll("#bookingTableBody tr");
+
+        rows.forEach(row => {
+            const guestName = row.children[0].textContent.toLowerCase();
+            const property = row.children[1].textContent.toLowerCase();
+            const status = row.children[4].textContent.toLowerCase();
+
+            const matchesSearch = guestName.includes(searchValue) || property.includes(searchValue);
+            const matchesStatus = statusFilter === "all" || status === statusFilter;
+
+            row.style.display = matchesSearch && matchesStatus ? "" : "none";
+        });
+    }
+</script>
