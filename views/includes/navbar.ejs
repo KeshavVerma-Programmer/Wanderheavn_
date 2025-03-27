@@ -3,8 +3,12 @@
     background-color: #fe424d;
     color: #fff;
     border-radius: 25px;
-    padding: 0 1rem 0 1rem;
-  }
+    padding: 0.5rem 1.5rem; /* Increased padding for better alignment */
+    border: none;
+    font-weight: bold;
+    display: flex;
+    align-items: center
+    }
   .search-btn:hover{
     background-color: #fe424d;
     color: #fff;
@@ -15,8 +19,24 @@
   }
   .search-inp{
     border-radius: 25px;
-    padding: 0.5rem 3rem 0.5rem 3rem;
+    padding: 0.5rem 1.5rem; /* Adjusted padding */
     font-size: 1rem;
+    width: 250px; /* Ensuring input width */
+    }
+    .navbar-nav form {
+    display: flex;
+    align-items: center; /* Centering input and button */
+    gap: 0.5rem;
+  }
+
+  /* Responsive Fix */
+  @media (max-width: 768px) {
+    .search-inp {
+      width: 180px;
+    }
+    .search-btn {
+      padding: 0.4rem 1rem;
+    }
   }
 
   .navbar-brand {
@@ -53,12 +73,15 @@
         <a class="nav-link active-link" href="/listings">Explore</a>
       </div>
       <div class="navbar-nav ms-auto">
-        <form class="d-flex" role="search">
-          <input class="form-control me-2 search-inp" type="search" placeholder="Search destinations">
-          <button class="btn search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
+        <form class="d-flex" role="search" action="/listings" method="GET">
+          <input class="form-control me-2 search-inp" type="text" name="search" value="<%= search || '' %>" placeholder="Search by location, title, or price">
+          <button class="btn search-btn" type="submit">
+            <i class="fa-solid fa-magnifying-glass"></i> Search
+          </button>
         </form>
       </div>
       <div class="navbar-nav ms-auto">
+        
         <% if (!currUser) { %>
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="hostDropdown" role="button"
@@ -73,7 +96,13 @@
         <% } %>
 
         <% if (currUser && currUser.role === 'host') { %>
+          <a class="nav-link" href="/host/dashboard">Host Dashboard</a>
+          <a class="nav-link" href="/host/profile">Profile</a>
           <a class="nav-link" href="/host/listings/new">Wanderheavn your home</a>
+        <% } %>
+
+        <% if (currUser && currUser.role === 'user') { %>
+          <a class="nav-link" href="/user/profile">Profile</a>
         <% } %>
 
         <% if (!currUser) { %>
@@ -84,6 +113,7 @@
         <% if (currUser) { %>
           <a class="nav-link" href="/logout"><b>Log out</b></a>
         <% } %>
+
       </div>
     </div>
   </div>

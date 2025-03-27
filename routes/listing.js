@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const wrapAsync = require("../utils/wrapAsync.js");
-const Listing = require("../models/listing.js");
 const { isLoggedIn, isOwner, validateListing, isHost } = require("../middleware.js");
 const listingController = require("../controllers/listings.js");
+const Listing = require("../models/listing.js");
 
 const multer = require("multer");
 const { storage } = require("../cloudConfig.js");
@@ -13,7 +13,32 @@ const mongoose = require("mongoose");
 // Route to display all listings
 router
   .route("/")
-  .get(wrapAsync(listingController.index))
+  .get(async (req, res) => {
+    const { search, category } = req.query;
+    let filter = {};
+  
+    if (search) {
+      filter = {
+        $or: [
+          { title: { $regex: search, $options: "i" } },
+          { location: { $regex: search, $options: "i" } },
+          { price: !isNaN(search) ? parseInt(search) : undefined }
+        ].filter(Boolean)
+      };
+    }
+  
+    if (category) {
+      filter.category = category; // Match category in the database
+    }
+  
+    try {
+      const allListings = await Listing.find(filter);
+      res.render("listings/index", { allListings, category, search, currUser: req.user });
+    } catch (err) {
+      console.error(err);
+      res.redirect("/listings");
+    }
+  })
   .post(
     isLoggedIn,
     isHost,
@@ -50,51 +75,46 @@ router
 
 
 // New listing form
-router.get("/addListing", isLoggedIn, isHost, listingController.renderNewForm);
+// router.get("/addListing", isLoggedIn, isHost, listingController.renderNewForm);
+
 
 // Show, Update, and Delete Listings
 router
   .route("/:id")
-  .get(wrapAsync(listingController.showListing))
-  .put(
-    isLoggedIn,
-    isOwner,
-    upload.array("listing[images]"),
-    (req, res, next) => {
-      req.body.listing.images = req.files?.length
-        ? req.files.map((file) => ({
-            url: file.path,
-            filename: file.filename,
-          }))
-        : [];
-      next();
-    },
-    validateListing,
-    wrapAsync(async (req, res) => {
-      const { id } = req.params;
-      if (!mongoose.isValidObjectId(id)) {
-        req.flash("error", "Invalid listing ID.");
-        return res.redirect("/listings");
-      }
-
-      const listing = await Listing.findByIdAndUpdate(id, req.body.listing);
-      if (!listing) {
-        req.flash("error", "Listing not found.");
-        return res.redirect("/listings");
-      }
-
-      if (req.files?.length) {
-        listing.images = req.body.listing.images;
-        await listing.save();
-      }
-
-      req.flash("success", "Listing updated successfully!");
-      res.redirect(`/listings/${id}`);
-    })
-  )
-  .delete(isLoggedIn, isOwner, wrapAsync(listingController.destroyListing));
+  .get(wrapAsync(listingController.showListing));
+ 
 
 // Edit form
-router.get("/:id/edit", isLoggedIn, isOwner, wrapAsync(listingController.renderEditForm));
+
+
+// Route to update a specific listing (Admin Panel)
+// router.put("/listings/:id", isAdmin, upload.single("image"), updateListing);
+
+// .get(async (req, res) => {
+//     const { search, category } = req.query;
+//     let filter = {};
+  
+//     if (search) {
+//       filter = {
+//         $or: [
+//           { title: { $regex: search, $options: "i" } },
+//           { location: { $regex: search, $options: "i" } },
+//           { price: !isNaN(search) ? parseInt(search) : undefined }
+//         ].filter(Boolean)
+//       };
+//     }
+  
+//     if (category) {
+//       filter.category = category; // Match category in the database
+//     }
+  
+//     try {
+//       const allListings = await Listing.find(filter);
+//       res.render("listings/index", { allListings, category, search, currUser: req.user });
+//     } catch (err) {
+//       console.error(err);
+//       res.redirect("/listings");
+//     }
+//   }) GET Listings (Search & Filter)
 
 module.exports = router;

@@ -9,7 +9,7 @@
                 type="text" 
                 id="searchInput" 
                 class="form-control" 
-                placeholder="Search listings by title or location..."
+                placeholder="Search listings by title, location, or host name..."
             />
         </div>
     </div>
@@ -22,6 +22,7 @@
                         <th>Title</th>
                         <th>Location</th>
                         <th>Price (&#8377;)</th>
+                        <th>Host Name</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -37,6 +38,7 @@
                             </td>
                             <td><%= listing.location %></td>
                             <td><%= listing.price.toLocaleString("en-IN") %></td>
+                            <td><%= listing.owner ? listing.owner.username : 'Unknown' %></td>
                             <td>
                                 <span class="badge 
                                     <%= listing.status === 'Active' ? 'bg-success' 
@@ -46,19 +48,23 @@
                                 </span>
                             </td>
                             <td class="text-center">
+                                <!-- View Listing -->
+                                <a href="/admin/listings/<%= listing._id %>" 
+                                   class="btn btn-sm btn-info me-1">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+
+                                <!-- Edit Listing -->
                                 <a href="/admin/listings/<%= listing._id %>/edit" 
                                    class="btn btn-sm btn-primary me-1">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
 
-                                <form action="/admin/listings/<%= listing._id %>?_method=DELETE" 
-                                      method="POST" 
-                                      class="d-inline"
-                                      onsubmit="return confirmDelete('<%= listing.title %>');">
-                                    <button class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </form>
+                                <!-- Delete Listing (Confirmation) -->
+                                <a href="/admin/listings/<%= listing._id %>/delete" 
+                                   class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
                             </td>
                         </tr>
                     <% }) %>
@@ -73,11 +79,6 @@
 </div>
 
 <script>
-    // Enhanced Delete Confirmation
-    function confirmDelete(title) {
-        return confirm(`Are you sure you want to delete the listing: "${title}"?`);
-    }
-
     // Search Filter Functionality
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('keyup', function() {
@@ -87,8 +88,9 @@
         rows.forEach(row => {
             const title = row.cells[0].innerText.toLowerCase();
             const location = row.cells[1].innerText.toLowerCase();
+            const host = row.cells[3].innerText.toLowerCase();
 
-            if (title.includes(filter) || location.includes(filter)) {
+            if (title.includes(filter) || location.includes(filter) || host.includes(filter)) {
                 row.style.display = "";
             } else {
                 row.style.display = "none";

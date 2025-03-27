@@ -47,16 +47,16 @@ app.use(methodOverride("_method"));
 app.engine('ejs', ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
 
-const sessionOptions = {
-  secret: "mysupersecretcode",
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-  },
-};
+  const sessionOptions = {
+    secret: "mysupersecretcode",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    },
+  };
 
 // Session & Flash should come before routes
 app.use(session(sessionOptions));
@@ -64,7 +64,123 @@ app.use(flash());
 
 app.use(passport.initialize());
 app.use(passport.session());
+// Passport Strategies
+// passport.use(
+//   "user-local",
+//   new LocalStrategy(
+//     { usernameField: "identifier", passwordField: "password" },
+//     async (identifier, password, done) => {
+//       try {
+//         // Find user by either username or email
+//         const user = await User.findOne({
+//           $or: [{ email: identifier }, { username: identifier }],
+//         });
 
+//         if (!user) {
+//           return done(null, false, { message: "Invalid username or email!" });
+//         }
+
+//         // Authenticate Password
+//         const isValid = await user.authenticate(password);
+//         if (!isValid) {
+//           return done(null, false, { message: "Incorrect password!" });
+//         }
+
+//         return done(null, user); // Successfully authenticated
+//       } catch (err) {
+//         return done(err);
+//       }
+//     }
+//   )
+// );
+
+// passport.use(
+//   "admin-local",
+//   new LocalStrategy(
+//     { usernameField: "identifier", passwordField: "password" },
+//     async (identifier, password, done) => {
+//       try {
+//         const admin = await Admin.findOne({
+//           $or: [{ email: identifier }, { username: identifier }],
+//         });
+
+//         if (!admin) {
+//           return done(null, false, { message: "Invalid username or email!" });
+//         }
+
+//         const isValid = await admin.authenticate(password);
+//         if (!isValid) {
+//           return done(null, false, { message: "Incorrect password!" });
+//         }
+
+//         return done(null, admin);
+//       } catch (err) {
+//         return done(err);
+//       }
+//     }
+//   )
+// );
+
+// passport.use(
+//   "host-local",
+//   new LocalStrategy(
+//     { usernameField: "identifier", passwordField: "password" },
+//     async (identifier, password, done) => {
+//       try {
+//         // Find host by either username or email
+//         const host = await Host.findOne({
+//           $or: [{ email: identifier }, { username: identifier }],
+//         });
+
+//         if (!host) {
+//           return done(null, false, { message: "Invalid username or email!" });
+//         }
+
+//         // Authenticate Password
+//         const isValid = await host.authenticate(password);
+//         if (!isValid) {
+//           return done(null, false, { message: "Incorrect password!" });
+//         }
+
+//         return done(null, host); // Successfully authenticated
+//       } catch (err) {
+//         return done(err);
+//       }
+//     }
+//   )
+// );
+
+// // Serialize user (Stores user ID & role in session)
+// passport.serializeUser((user, done) =>
+//   done(null, { id: user.id, role: user.role })
+// );
+
+// // Deserialize user (Retrieves user data from session)
+// passport.deserializeUser(async (data, done) => {
+//   try {
+//     let user = null;
+
+//     switch (data.role) {
+//       case "admin":
+//         user = await Admin.findById(data.id);
+//         break;
+//       case "host":
+//         user = await Host.findById(data.id);
+//         break;
+//       default:
+//         user = await User.findById(data.id);
+//         break;
+//     }
+
+//     if (!user) return done(null, false);
+
+//     user.role = data.role; // Reattach role
+//     return done(null, user);
+//   } catch (err) {
+//     return done(err);
+//   }
+// });
+//uppper khatra ha error logic 
 // Passport Strategies
 passport.use(
   "user-local",
@@ -95,7 +211,36 @@ passport.use(
   )
 );
 
-passport.use('admin-local', new LocalStrategy(Admin.authenticate()));
+// passport.use('admin-local', new LocalStrategy(Admin.authenticate()));
+
+passport.use(
+  "admin-local",
+  new LocalStrategy(
+    { usernameField: "identifier", passwordField: "password" },
+    async (identifier, password, done) => {
+      try {
+        const admin = await Admin.findOne({
+          $or: [{ email: identifier }, { username: identifier }],
+        });
+
+        if (!admin) {
+          return done(null, false, { message: "Invalid username or email!" });
+        }
+
+        // Authenticate Password using Admin model
+        const { user: authenticatedAdmin, error } = await admin.authenticate(password);
+        if (error || !authenticatedAdmin) {
+          return done(null, false, { message: "Incorrect password!" });
+        }
+
+        return done(null, authenticatedAdmin); // Successfully authenticated
+      } catch (err) {
+        return done(err);
+      }
+    }
+  )
+);
+
 passport.use(
   "host-local",
   new LocalStrategy(
@@ -155,6 +300,96 @@ passport.deserializeUser(async (data, done) => {
   }
 });
 
+// // Passport Strategies
+// passport.use(
+//   "user-local",
+//   new LocalStrategy(
+//     { usernameField: "identifier", passwordField: "password" }, 
+//     async (identifier, password, done) => {
+//       try {
+//         // Find user by either username or email
+//         const user = await User.findOne({
+//           $or: [{ email: identifier }, { username: identifier }],
+//         });
+
+//         if (!user) {
+//           return done(null, false, { message: "Invalid username or email!" });
+//         }
+
+//         // Authenticate Password
+//         const isValid = await user.authenticate(password);
+//         if (!isValid.user) {
+//           return done(null, false, { message: "Incorrect password!" });
+//         }
+
+//         return done(null, user); // Successfully authenticated
+//       } catch (err) {
+//         return done(err);
+//       }
+//     }
+//   )
+// );
+
+// passport.use('admin-local', new LocalStrategy(Admin.authenticate()));
+// passport.use(
+//   "host-local",
+//   new LocalStrategy(
+//     { usernameField: "identifier", passwordField: "password" }, 
+//     async (identifier, password, done) => {
+//       try {
+//         // Find user by either username or email
+//         const host = await Host.findOne({
+//           $or: [{ email: identifier }, { username: identifier }],
+//         });
+
+//         if (!host) {
+//           return done(null, false, { message: "Invalid username or email!" });
+//         }
+
+//         // Authenticate Password
+//         const isValid = await host.authenticate(password);
+//         if (!isValid.user) {
+//           return done(null, false, { message: "Incorrect password!" });
+//         }
+
+//         return done(null, host); // Successfully authenticated
+//       } catch (err) {
+//         return done(err);
+//       }
+//     }
+//   )
+// );
+
+
+
+
+// passport.serializeUser((user, done) => done(null, { id: user.id, role: user.role }));
+
+// passport.deserializeUser(async (data, done) => {
+//   try {
+//     let user = null;
+
+//     switch (data.role) {
+//       case "admin":
+//         user = await Admin.findById(data.id);
+//         break;
+//       case "host":
+//         user = await Host.findById(data.id);
+//         break;
+//       default:
+//         user = await User.findById(data.id);
+//         break;
+//     }
+
+//     if (!user) return done(null, false);
+
+//     user.role = data.role; // Reattach role
+//     return done(null, user);
+//   } catch (err) {
+//     return done(err);
+//   }
+// });
+
 
 
 // Flash Messages & Current User in Views
@@ -165,6 +400,13 @@ app.use((req, res, next) => {
   res.locals.currUser = req.user;
   next();
 });
+
+// Set search value before any routes
+app.use((req, res, next) => {
+  res.locals.search = req.query.search || '';
+  next();
+});
+
 
 
 // Routes

@@ -4,6 +4,7 @@ const wrapAsync = require('../utils/wrapAsync');
 const passport = require("passport");
 const { saveRedirectUrl } = require('../middleware.js');
 const userController = require("../controllers/users.js");
+const User = require("../models/user"); // Import the Host model
 
 // Redirect /signup to /signup/user
 router.get("/signup", (req, res) => res.redirect("/user/signup"));
@@ -27,5 +28,22 @@ router.route("/user/login")
 
 // LOGOUT
 router.get("/logout", userController.logout);
+router.get("/user/profile",async (req, res) => {
+    console.log("Current User:", req.user); // Debugging Line
+
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            req.flash("error", "User not found!");
+            return res.redirect("/user/login");
+        }
+        res.render("users/profile", { user });
+    } catch (err) {
+        console.error("Error fetching host profile:", err);
+        req.flash("error", "Something went wrong.");
+        res.redirect("/host/dashboard");
+    }
+});
+
 
 module.exports = router;

@@ -2,6 +2,10 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const { isAdmin, isAdminLoggedIn } = require("../middleware");
+const multer = require("multer");
+const { storage } = require("../cloudConfig");
+const upload = multer({ storage });
+
 const {
     renderAdminLoginForm,
     adminLogin,
@@ -12,10 +16,13 @@ const {
     manageListings,
     approveListing,
     rejectListing,
-    featureListing,
-    deleteListing,manageHosts,deleteHosts
+    featureListing
+ ,manageHosts,deleteHosts,viewListing,renderEditForm,updateListing,renderDeletePage,deleteListing
 } = require("../controllers/admin");
 
+
+
+// Middleware for admin authentication (ensure only admin can access)
 
 const ADMIN_SECRET_KEY = "SECRET123";
 // Middleware to check secret key in URL
@@ -65,6 +72,30 @@ router.get("/manage-listings", isAdmin, manageListings);
 router.post("/manage-listings/:id/approve", isAdmin, approveListing);
 router.post("/manage-listings/:id/reject", isAdmin, rejectListing);
 router.post("/manage-listings/:id/feature", isAdmin, featureListing);
-router.post("/manage-listings/:id/delete", isAdmin, deleteListing);
+// router.post("/manage-listings/:id/delete", isAdmin, deleteListing);
+
+
+
+// // View Listing Details
+
+
+
+
+router.get("/listings/:id", isAdmin, viewListing);
+
+// Route to show edit form for a specific listing (Admin Panel)
+router.get("/listings/:id/edit", isAdmin,renderEditForm);
+
+// Route to update a specific listing (Admin Panel)
+// router.put("/listings/:id", isAdmin, upload.single("image"), updateListing);
+router.put("/listings/:id", isAdmin, upload.single("listing[images]"), updateListing);
+
+// router.put("/listings/:id", isAdmin, upload.single("listing[image]"), updateListing);
+router.get("/listings/:id/delete", isAdmin, renderDeletePage);
+
+// Route to handle listing deletion
+router.delete("/listings/:id", isAdmin, deleteListing);
+
+
 
 module.exports = router;

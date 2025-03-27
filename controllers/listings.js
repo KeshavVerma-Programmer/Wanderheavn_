@@ -70,9 +70,9 @@ module.exports.showListing = async (req, res) => {
         return res.redirect("/listings");
       }
   
-      listing.formattedCheckInTime = formatTime(listing.checkInTime);
-      listing.formattedCheckOutTime = formatTime(listing.checkOutTime);
-  
+    // ✅ Show time exactly as stored
+    listing.formattedCheckInTime = listing.checkInTime || "Not Set";
+    listing.formattedCheckOutTime = listing.checkOutTime || "Not Set";
       res.render("listings/show", { listing });
   };
   
@@ -165,65 +165,5 @@ module.exports.createListing = async (req, res, next) => {
     }
 };
 
-module.exports.renderEditForm = async (req, res) => {
-    let { id } = req.params;
-    const listing = await Listing.findById(id).lean();
 
-    if (!listing) {
-        req.flash("error", "Listing you requested for does not exist!");
-        return res.redirect("/listings");
-    }
 
-    let originalImageUrl = listing.image?.url.replace("/upload", "/upload/w_250") || "";
-    res.render("listings/edit.ejs", { listing, originalImageUrl });
-};
-
-module.exports.updateListing = async (req, res) => {
-    let { id } = req.params;
-    const location = req.body.listing.location;
-
-    try {
-        const geoResponse = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(location)}.json?key=${mapToken}`);
-        const geoData = await geoResponse.json();
-
-        const coordinates = geoData.features?.[0]?.geometry?.coordinates || [0, 0];
-
-        const updatedData = {
-            ...req.body.listing
-        };
-        delete updatedData.geometry;  // Exclude geometry from req.body.listing
-
-        let listing = await Listing.findByIdAndUpdate(id, updatedData);
-
-        listing.geometry = {
-            type: "Point",
-            coordinates
-        };
-        await listing.save();
-
-        if (req.files?.length) {
-            listing.images = req.files.map(file => ({ url: file.path, filename: file.filename }));
-            await listing.save();
-        }
-
-        req.flash("success", "Listing Updated");
-        res.redirect(`/listings/${id}`);
-
-    } catch (error) {
-        console.error("Geocoding Error (Update):", error);
-        req.flash("error", "Failed to update location coordinates. Please try again.");
-        res.redirect(`/listings/${id}/edit`);
-    }
-};
-
-module.exports.destroyListing = async (req, res) => {
-    let { id } = req.params;
-    let deletedListing = await Listing.findByIdAndDelete(id);
-    if (!deletedListing) {
-        req.flash("error", "Listing not found or already deleted.");
-        return res.redirect("/listings");
-    }
-
-    req.flash("success", "Listing Deleted!");
-    res.redirect("/listings");
-};

@@ -2,7 +2,9 @@ const Host = require("../models/host");
 const Listing = require("../models/listing");
 const Booking = require("../models/booking");
 const mongoose = require("mongoose");
-
+const { cloudinary } = require("../cloudConfig");
+const axios = require("axios"); 
+const mapToken = process.env.MAP_TOKEN;
 // ==========================
 // HOST SIGNUP
 // ==========================
@@ -13,7 +15,7 @@ module.exports.renderHostSignupForm = (req, res) => {
 module.exports.hostSignup = async (req, res, next) => {
     console.log("Received Data:", req.body); // Debugging
 
-    const { username, email, phone, password, accountHolderName, accountNumber, ifscCode, bankName } = req.body;
+    const { username, email, phone, password} = req.body;
 
     try {
         const newHost = new Host({ 
@@ -21,12 +23,7 @@ module.exports.hostSignup = async (req, res, next) => {
             email, 
             phone,
             role: "host",  // Ensure role is assigned
-            bankDetails: {
-                accountHolderName,
-                accountNumber,
-                ifscCode,
-                bankName
-            }
+            
         });
 
         const registeredHost = await Host.register(newHost, password);
@@ -132,36 +129,36 @@ module.exports.addListing = async (req, res) => {
 
 
 
-module.exports.editListing = async (req, res) => {
-    const { id } = req.params;
-    if (!mongoose.isValidObjectId(id)) {
-        req.flash("error", "Invalid Listing ID.");
-        return res.redirect("/host/manage-listings");
-    }
+// module.exports.editListing = async (req, res) => {
+//     const { id } = req.params;
+//     if (!mongoose.isValidObjectId(id)) {
+//         req.flash("error", "Invalid Listing ID.");
+//         return res.redirect("/host/manage-listings");
+//     }
 
-    const listing = await Listing.findById(id);
-    if (!listing || !listing.owner.equals(req.user._id)) {
-        req.flash("error", "Listing not found or unauthorized access.");
-        return res.redirect("/host/manage-listings");
-    }
+//     const listing = await Listing.findById(id);
+//     if (!listing || !listing.owner.equals(req.user._id)) {
+//         req.flash("error", "Listing not found or unauthorized access.");
+//         return res.redirect("/host/manage-listings");
+//     }
 
-    await Listing.findByIdAndUpdate(id, req.body.listing);
-    req.flash("success", "Listing updated successfully!");
-    res.redirect("/host/manage-listings");
-};
+//     await Listing.findByIdAndUpdate(id, req.body.listing);
+//     req.flash("success", "Listing updated successfully!");
+//     res.redirect("/host/manage-listings");
+// };
 
-module.exports.deleteListing = async (req, res) => {
-    const { id } = req.params;
-    const listing = await Listing.findById(id);
-    if (!listing || !listing.owner.equals(req.user._id)) {
-        req.flash("error", "Listing not found or unauthorized access.");
-        return res.redirect("/host/manage-listings");
-    }
+// module.exports.deleteListing = async (req, res) => {
+//     const { id } = req.params;
+//     const listing = await Listing.findById(id);
+//     if (!listing || !listing.owner.equals(req.user._id)) {
+//         req.flash("error", "Listing not found or unauthorized access.");
+//         return res.redirect("/host/manage-listings");
+//     }
 
-    await Listing.findByIdAndDelete(id);
-    req.flash("success", "Listing deleted successfully.");
-    res.redirect("/host/manage-listings");
-};
+//     await Listing.findByIdAndDelete(id);
+//     req.flash("success", "Listing deleted successfully.");
+//     res.redirect("/host/manage-listings");
+// };
 
 // ==========================
 // MANAGE BOOKINGS
@@ -198,4 +195,93 @@ module.exports.logout = (req, res, next) => {
         req.flash("success", "You are logged out!");
         res.redirect("/listings");
     });
+};
+module.exports.destroyListing = async (req, res) => {
+    let { id } = req.params;
+    let deletedListing = await Listing.findByIdAndDelete(id);
+    if (!deletedListing) {
+        req.flash("error", "Listing not found or already deleted.");
+        return res.redirect("/host/manage-listings");
+    }
+
+    req.flash("success", "Listing Deleted!");
+    res.redirect("/host/manage-listings");
+};
+// Function to get coordinates using MapTiler
+async function geocodeLocation(location) {
+    try {
+        const geoUrl = `https://api.maptiler.com/geocoding/${encodeURIComponent(location)}.json?key=${mapToken}`;
+        const response = await axios.get(geoUrl);
+
+        if (response.data.features && response.data.features.length > 0) {
+            const [longitude, latitude] = response.data.features[0].geometry.coordinates;
+            return { type: "Point", coordinates: [longitude, latitude] };
+        } else {
+            throw new Error("No coordinates found for the given location.");
+        }
+    } catch (error) {
+        console.error("❌ Geocoding Error:", error);
+        return null;
+    }
+}
+module.exports.renderEditForm = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const listing = await Listing.findById(id);
+        if (!listing) {
+            req.flash("error", "Listing not found!");
+            return res.redirect("/host/listings");
+        }
+        res.render("host/listings/edit", { listing });
+    } catch (error) {
+        console.error("❌ Error rendering edit form:", error);
+        req.flash("error", "Something went wrong.");
+        res.redirect("/host/listings");
+    }
+};
+
+module.exports.updateListing = async (req, res) => {
+    try {
+        const { id } = req.params;
+        let listing = await Listing.findById(id);
+
+        if (!listing) {
+            req.flash("error", "Listing not found!");
+            return res.redirect("/host/listings");
+        }
+
+        // Update text fields (title, description, etc.)
+        listing.set(req.body.listing);
+
+        // Handle Image Upload
+        if (req.file) {
+            // Delete old images from Cloudinary
+            if (listing.images && listing.images.length > 0) {
+                for (let img of listing.images) {
+                    await cloudinary.uploader.destroy(img.filename);
+                }
+            }
+
+            // Assign new image
+            listing.images = [{ url: req.file.path, filename: req.file.filename }];
+        }
+
+        // Handle Geocoding with MapTiler
+        if (req.body.listing.location) {
+            const geoData = await geocodeLocation(req.body.listing.location);
+            if (geoData) {
+                listing.geometry = geoData; // Store coordinates
+            }
+        }
+
+        // **Save the updated listing**
+        await listing.save();
+
+        req.flash("success", "Listing updated successfully!");
+        res.redirect("/listings");
+    } catch (error) {
+        console.error("❌ Error updating listing:", error);
+        req.flash("error", "Something went wrong while updating.");
+        res.redirect(`/host/listings/${id}/edit`);
+    }
 };

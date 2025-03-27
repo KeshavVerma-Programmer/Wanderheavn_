@@ -7,10 +7,10 @@ module.exports.renderUserSignupForm = (req, res) => {
 
 module.exports.userSignup = async (req, res, next) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, phone } = req.body;
 
         // Create a new User instance
-        const user = new User({ username, email });
+        const user = new User({ username, email, phone });
 
         // Register user with hashed password
         const registeredUser = await User.register(user, password);

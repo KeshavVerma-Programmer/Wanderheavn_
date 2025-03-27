@@ -33,6 +33,7 @@ const userSchema = new Schema({
         trim: true,
         match: [/.+\@.+\..+/, "Invalid email format"]
     },
+    phone: { type: String, required: true ,unique:true},
     role: {
         type: String,
         enum: ["user", "host", "admin"],
@@ -43,6 +44,5 @@ const userSchema = new Schema({
 userSchema.plugin(passportLocalMongoose, { usernameField: "email" });
 
 module.exports = mongoose.model("User", userSchema);
-
 
 

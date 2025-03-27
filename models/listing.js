@@ -43,7 +43,7 @@ const listingSchema = new Schema(
     },
     status: { 
       type: String, 
-      enum: ["Active", "Inactive", "Pending"], 
+      enum: ["Active", "Pending","Already Booked"], 
       default: "Pending",
       required: true
     },
@@ -58,7 +58,7 @@ const listingSchema = new Schema(
       }
     ],
     owner: { 
-      type: String,  
+      type: Schema.Types.ObjectId,  
       ref: "Host", 
       required: true,
     },

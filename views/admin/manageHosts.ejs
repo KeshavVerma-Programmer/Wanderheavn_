@@ -1,4 +1,5 @@
 <% layout("/layouts/boilerplate") %>
+
 <div class="container mt-4">
     <h2 class="text-center mb-4 text-uppercase fw-bold">Manage Hosts</h2>
 
@@ -39,14 +40,14 @@
                                 </span>
                             </td>
                             <td>
-                                <!-- Delete Button -->
-                                <form 
-    action="/admin/manage-hosts/<%= host._id %>/delete?_method=DELETE" 
-    method="POST"
-    class="d-inline"
-    onsubmit="return confirmDelete('<%= host.username %>');">
-    <button class="btn btn-sm btn-danger">Delete</button>
-
+                                <form action="/admin/manage-hosts/<%= host._id %>/delete?_method=DELETE" 
+                                    method="POST" class="d-inline">
+                                  <button type="submit" 
+                                          class="btn btn-sm btn-danger delete-host" 
+                                          data-username="<%= host.username %>">
+                                      Delete
+                                  </button>
+                              </form>
                             </td>
                         </tr>
                     <% }) %>
@@ -59,31 +60,28 @@
 </div>
 
 <script>
-    // Delete Confirmation
-    function confirmDelete(username) {
-        return confirm(`Are you sure you want to delete the user: "${username}"?`);
-    }
-
-    // Promotion Confirmation
-    function confirmPromotion(username) {
-        return confirm(`Are you sure you want to promote "${username}" to admin?`);
-    }
-
     // Search Filter Functionality
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('keyup', function() {
-        const filter = searchInput.value.toLowerCase();
-        const rows = document.querySelectorAll('#userTable tbody tr');
-
-        rows.forEach(row => {
+    document.getElementById('searchInput').addEventListener('keyup', function () {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('#userTable tbody tr').forEach(row => {
             const username = row.cells[0].innerText.toLowerCase();
             const email = row.cells[1].innerText.toLowerCase();
+            row.style.display = username.includes(filter) || email.includes(filter) ? "" : "none";
+        });
+    });
 
-            if (username.includes(filter) || email.includes(filter)) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+    // Delete Confirmation
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".delete-host").forEach((button) => {
+            button.addEventListener("click", function (event) {
+                event.preventDefault(); // Prevent default form submission
+                
+                let username = this.getAttribute("data-username"); // Get the username
+                
+                if (confirm(`Are you sure you want to delete the user: "${username}"?`)) {
+                    this.closest("form").submit(); // Submit the correct form
+                }
+            });
         });
     });
 </script>

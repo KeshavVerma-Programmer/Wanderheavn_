@@ -15,7 +15,7 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
 </head>
 <body>
-    <%- include("../includes/navbar.ejs") %>
+    <%- include("../includes/navbar.ejs", { search: search }) %>
 
     <div class="container">
         <%- include("../includes/flash.ejs") %> <%- body %>
