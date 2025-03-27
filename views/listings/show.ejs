@@ -61,16 +61,17 @@
   <form action="/listings/<%= listing._id %>/reviews" method="POST">
     <label>Rating:</label>
     <div class="starability-slot">
-      <input type="radio" id="rate5" name="review[rating]" value="5" checked><label for="rate5">★★★★★</label>
-      <input type="radio" id="rate4" name="review[rating]" value="4"><label for="rate4">★★★★</label>
-      <input type="radio" id="rate3" name="review[rating]" value="3"><label for="rate3">★★★</label>
-      <input type="radio" id="rate2" name="review[rating]" value="2"><label for="rate2">★★</label>
-      <input type="radio" id="rate1" name="review[rating]" value="1"><label for="rate1">★</label>
+        <input type="radio" id="rate5" name="review[rating]" value="5" checked><label for="rate5">★★★★★</label>
+        <input type="radio" id="rate4" name="review[rating]" value="4"><label for="rate4">★★★★</label>
+        <input type="radio" id="rate3" name="review[rating]" value="3"><label for="rate3">★★★</label>
+        <input type="radio" id="rate2" name="review[rating]" value="2"><label for="rate2">★★</label>
+        <input type="radio" id="rate1" name="review[rating]" value="1"><label for="rate1">★</label>
     </div>
     <label>Comment - </label>
     <textarea name="review[comment]" class="form-control" required></textarea>
     <button class="btn btn-outline-dark mt-2">Submit</button>
-  </form>
+</form>
+
 <% } else if (currUser && (currUser.role === 'host' || currUser.role === 'admin')) { %>
   <p class="text-muted">Only users can submit reviews.</p>
 <% } %>

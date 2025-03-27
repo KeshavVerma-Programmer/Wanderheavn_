@@ -9,8 +9,13 @@ module.exports.createReview = async (req, res) => {
             return res.redirect("/listings");
         }
 
-        let newReview = new Review(req.body.review);
-        newReview.author = req.user._id;
+        console.log("Received Review Data:", req.body.review); // Debugging
+
+        let newReview = new Review({
+            rating: req.body.review.rating,  // Ensure this is being passed
+            comment: req.body.review.comment,
+            author: req.user._id
+        });
 
         listing.reviews.push(newReview);
 
@@ -25,6 +30,7 @@ module.exports.createReview = async (req, res) => {
         res.redirect(`/listings/${req.params.id}`);
     }
 };
+
 
 module.exports.destroyReview = async (req, res) => {
     try {
