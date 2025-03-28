@@ -1,15 +1,15 @@
 <% layout("/layouts/boilerplate") %>
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4 text-uppercase fw-bold">Manage Hosts</h2>
+    <h2 class="text-center mb-4 text-uppercase fw-bold text-primary">Manage Hosts</h2>
 
     <!-- Search Bar -->
-    <div class="row mb-3">
+    <div class="row mb-4">
         <div class="col-md-6 offset-md-3">
             <input 
                 type="text" 
                 id="searchInput" 
-                class="form-control" 
+                class="form-control rounded-pill shadow-sm" 
                 placeholder="Search users by username or email..."
             />
         </div>
@@ -17,8 +17,8 @@
 
     <% if(hosts.length > 0) { %>
         <div class="table-responsive">
-            <table class="table table-striped" id="userTable">
-                <thead class="table-dark text-center">
+            <table class="table table-hover table-bordered text-center" id="userTable">
+                <thead class="table-dark">
                     <tr>
                         <th>Username</th>
                         <th>Email</th>
@@ -29,12 +29,12 @@
                 <tbody>
                     <% hosts.forEach(host => { %>
                         <tr>
-                            <td><%= host.username %></td>
-                            <td><%= host.email %></td>
+                            <td class="fw-semibold"><%= host.username %></td>
+                            <td class="text-muted"><%= host.email %></td>
                             <td>
-                                <span class="badge 
+                                <span class="badge px-3 py-2 text-uppercase 
                                     <%= host.role === 'admin' ? 'bg-primary' 
-                                    : host.role === 'host' ? 'bg-warning' 
+                                    : host.role === 'host' ? 'bg-warning text-dark' 
                                     : 'bg-secondary' %>">
                                     <%= host.role %>
                                 </span>
@@ -43,7 +43,7 @@
                                 <form action="/admin/manage-hosts/<%= host._id %>/delete?_method=DELETE" 
                                     method="POST" class="d-inline">
                                   <button type="submit" 
-                                          class="btn btn-sm btn-danger delete-host" 
+                                          class="btn btn-sm btn-danger delete-host px-3 py-1 fw-bold" 
                                           data-username="<%= host.username %>">
                                       Delete
                                   </button>
@@ -55,10 +55,11 @@
             </table>
         </div>
     <% } else { %>
-        <p class="text-center">No Hosts available.</p>
+        <p class="text-center text-muted">No Hosts available.</p>
     <% } %>
 </div>
-
+<br><br>
+<a href="/admin/dashboard" class="btn btn-secondary">Back</a>
 <script>
     // Search Filter Functionality
     document.getElementById('searchInput').addEventListener('keyup', function () {

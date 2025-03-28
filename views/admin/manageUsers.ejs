@@ -1,6 +1,7 @@
 <% layout("/layouts/boilerplate") %>
+
 <div class="container mt-4">
-    <h2 class="text-center mb-4 text-uppercase fw-bold">Manage Users</h2>
+    <h2 class="text-center mb-4 text-uppercase fw-bold text-success">Manage Users</h2>
 
     <!-- Search Bar -->
     <div class="row mb-3">
@@ -16,7 +17,7 @@
 
     <% if(users.length > 0) { %>
         <div class="table-responsive">
-            <table class="table table-striped" id="userTable">
+            <table class="table table-hover table-bordered align-middle" id="userTable">
                 <thead class="table-dark text-center">
                     <tr>
                         <th>Username</th>
@@ -31,23 +32,21 @@
                             <td><%= user.username %></td>
                             <td><%= user.email %></td>
                             <td>
-                                <span class="badge 
+                                <span class="badge px-3 py-2 text-uppercase 
                                     <%= user.role === 'admin' ? 'bg-primary' 
-                                    : user.role === 'host' ? 'bg-warning' 
+                                    : user.role === 'host' ? 'bg-warning text-dark' 
                                     : 'bg-secondary' %>">
                                     <%= user.role %>
                                 </span>
                             </td>
-                            <td>
-                                <!-- Delete Button -->
-                                <form action="/admin/manage-users/<%= user._id %>/delete?_method=DELETE" 
-                                      method="POST" class="d-inline">
-                                    <button type="submit" 
-                                            class="btn btn-sm btn-danger delete-user" 
-                                            data-username="<%= user.username %>">
-                                        Delete
-                                    </button>
-                                </form>
+                            <td class="text-center">
+                                <!-- Delete User Button with Confirmation -->
+                                <button type="button" 
+                                        class="btn btn-sm btn-danger delete-user" 
+                                        data-user-id="<%= user._id %>" 
+                                        data-username="<%= user.username %>">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </td>
                         </tr>
                     <% }) %>
@@ -55,24 +54,26 @@
             </table>
         </div>
     <% } else { %>
-        <p class="text-center">No users available.</p>
+        <div class="alert alert-info text-center">
+            No users available.
+        </div>
     <% } %>
 </div>
-
+<br><br>
+<a href="/admin/dashboard" class="btn btn-secondary">Back</a>
 <script>
     // Delete Confirmation
-    function confirmDelete(event, username) {
-        event.preventDefault(); // Stop form submission until confirmed
-        if (confirm(`Are you sure you want to delete the user: "${username}"?`)) {
-            event.target.closest("form").submit(); // Submit the correct form
-        }
-    }
-
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".delete-user").forEach((button) => {
-            button.addEventListener("click", function (event) {
-                let username = this.getAttribute("data-username"); // Get correct user
-                confirmDelete(event, username);
+            button.addEventListener("click", function () {
+                let userId = this.getAttribute("data-user-id");
+                let username = this.getAttribute("data-username");
+                
+                if (confirm(`Are you sure you want to delete the user: "${username}"?`)) {
+                    fetch(`/admin/manage-users/${userId}/delete?_method=DELETE`, {
+                        method: "POST"
+                    }).then(response => location.reload());
+                }
             });
         });
     });

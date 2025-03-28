@@ -5,18 +5,25 @@
         <div class="col-md-8">
             <div class="card shadow-lg rounded-4 border-0">
                 <div class="card-body p-4">
-                    <h2 class="text-center mb-3 fw-bold text-primary">User Profile</h2>
+                    <h2 class="text-center mb-3 fw-bold text-success">User Profile</h2>
 
-                    <!-- Display Flash Messages -->
-                    <% if (messages.success) { %>
-                        <div class="alert alert-success"><%= messages.success %></div>
+                    <!-- Flash Messages for Error/Success -->
+                    <% if (error.length > 0) { %>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <%= error %>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                     <% } %>
-                    <% if (messages.error) { %>
-                        <div class="alert alert-danger"><%= messages.error %></div>
+
+                    <% if (success.length > 0) { %>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <%= success %>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                     <% } %>
 
                     <!-- Personal Details -->
-                    <h4 class="text-primary">Personal Details</h4>
+                    <h4 class="text-success">Personal Details</h4>
                     <p><strong>Username:</strong> <%= user.username %></p>
                     <p><strong>Email:</strong> <%= user.email %></p>
                     <p><strong>Phone:</strong> <%= user.phone %></p>
@@ -24,6 +31,7 @@
                     <hr>
                     <!-- Actions -->
                     <div class="text-center">
+                        <a href="/listings" class="btn btn-secondary">Back</a>
                         <a href="/logout" class="btn btn-danger fw-bold">Logout</a>
                     </div>
                 </div>

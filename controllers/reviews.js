@@ -3,16 +3,21 @@ const Review = require("../models/review");
 
 module.exports.createReview = async (req, res) => {
     try {
+        console.log("Received Review Data:", req.body.review); // Debugging
+
+        if (!req.body.review || !req.body.review.rating) {
+            req.flash("error", "Rating is required!");
+            return res.redirect(`/listings/${req.params.id}`);
+        }
+
         let listing = await Listing.findById(req.params.id);
         if (!listing) {
             req.flash("error", "Listing not found!");
             return res.redirect("/listings");
         }
 
-        console.log("Received Review Data:", req.body.review); // Debugging
-
         let newReview = new Review({
-            rating: req.body.review.rating,  // Ensure this is being passed
+            rating: parseInt(req.body.review.rating), // Convert rating to number
             comment: req.body.review.comment,
             author: req.user._id
         });

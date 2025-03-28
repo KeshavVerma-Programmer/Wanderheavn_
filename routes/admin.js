@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const { isAdmin, isAdminLoggedIn } = require("../middleware");
+const { isAdmin, isAdminLoggedIn,isLoggedIn, checkDeletePermission } = require("../middleware");
 const multer = require("multer");
 const { storage } = require("../cloudConfig");
 const upload = multer({ storage });
+const Review=require("../models/review");
 
 const {
     renderAdminLoginForm,
@@ -17,7 +18,7 @@ const {
     approveListing,
     rejectListing,
     featureListing
- ,manageHosts,deleteHosts,viewListing,renderEditForm,updateListing,renderDeletePage,deleteListing
+ ,manageHosts,deleteHosts,viewListing,renderEditForm,updateListing,renderDeletePage,deleteListing,destroyReview,viewAllReviews,deleteReview
 } = require("../controllers/admin");
 
 
@@ -65,6 +66,10 @@ router.delete("/manage-users/:id/delete", isAdmin, deleteUser);
 router.get("/manage-hosts", isAdmin, manageHosts);
 router.delete("/manage-hosts/:id/delete", isAdmin, deleteHosts);
 
+router.get("/listings/manage-reviews", isAdmin, viewAllReviews);
+router.delete("/listings/:id/reviews/:reviewId", isLoggedIn, checkDeletePermission,deleteReview);
+
+
 // ==========================
 // MANAGE LISTINGS
 // ==========================
@@ -96,6 +101,13 @@ router.get("/listings/:id/delete", isAdmin, renderDeletePage);
 // Route to handle listing deletion
 router.delete("/listings/:id", isAdmin, deleteListing);
 
+router.delete('/listings/:id/reviews/:reviewId', isLoggedIn, checkDeletePermission, destroyReview);
 
+// Route to view all reviews in the admin panel
+// router.get("/listings/manage-reviews", isAdmin, viewAllReviews);
 
+// Route to delete a review from any listing
+router.get("/profile", isAdminLoggedIn, (req, res) => {
+    res.render("admin/profile", { admin: req.user });
+});
 module.exports = router;

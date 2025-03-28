@@ -95,14 +95,23 @@
           </div>
         <% } %>
 
+        
+        <% if (currUser && currUser.role === 'admin') { %>
+          <a class="nav-link" href="/admin/dashboard">Admin Dashboard</a>
+          <a class="nav-link profile-icon d-flex align-items-center text-danger" href="/admin/profile">
+            <i class="fa-solid fa-user-circle fa-lg me-2"></i>
+        <% } %>
+
         <% if (currUser && currUser.role === 'host') { %>
           <a class="nav-link" href="/host/dashboard">Host Dashboard</a>
-          <a class="nav-link" href="/host/profile">Profile</a>
           <a class="nav-link" href="/host/listings/new">Wanderheavn your home</a>
+          <a class="nav-link profile-icon d-flex align-items-center text-primary" href="/host/profile">
+            <i class="fa-solid fa-user-circle fa-lg me-2"></i>
         <% } %>
 
         <% if (currUser && currUser.role === 'user') { %>
-          <a class="nav-link" href="/user/profile">Profile</a>
+          <a class="nav-link profile-icon d-flex align-items-center text-success" href="/user/profile">
+            <i class="fa-solid fa-user-circle fa-lg me-2"></i>
         <% } %>
 
         <% if (!currUser) { %>

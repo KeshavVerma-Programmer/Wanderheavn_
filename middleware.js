@@ -107,6 +107,62 @@ module.exports.validateReview = (req, res, next) => {
     }
     next();
 };
+module.exports.isHostOrAdmin = async (req, res, next) => {
+    const { listingId } = req.params;
+    const listing = await Listing.findById(listingId);
+
+    if (!listing) {
+        console.log("🚨 ERROR: Listing not found.");
+        req.flash("error", "Listing not found.");
+        return res.redirect("back");
+    }
+
+    console.log("✅ Listing found:", listing.title);
+    console.log("✅ Current User:", req.user);
+
+    if (req.user.role === "admin") {
+        console.log("✅ Admin Access Granted");
+        return next();
+    }
+
+    if (req.user.role === "host" && listing.owner.equals(req.user._id)) {
+        console.log("✅ Host Access Granted");
+        return next();
+    }
+
+    console.log("❌ ERROR: User not authorized to delete listing.");
+    req.flash("error", "You do not have permission to delete this listing.");
+    return res.redirect("back");
+};
+
+module.exports.checkDeletePermission = async (req, res, next) => {
+    try {
+        const { reviewId } = req.params;
+        const review = await Review.findById(reviewId);
+
+        if (!review) {
+            req.flash("error", "Review not found!");
+            return res.redirect("back");
+        }
+
+        // Allow admins to delete any review
+        if (req.user && req.user.role === "admin") {
+            return next();
+        }
+
+        // Allow only review authors to delete their own reviews
+        if (review.author.equals(req.user._id)) {
+            return next();
+        }
+
+        req.flash("error", "You do not have permission to delete this review.");
+        return res.redirect("back");
+    } catch (error) {
+        console.error("Error in permission check:", error);
+        req.flash("error", "Something went wrong.");
+        return res.redirect("back");
+    }
+};
 
 // Ensures the user is the author of a review
 module.exports.isReviewAuthor = async (req, res, next) => {

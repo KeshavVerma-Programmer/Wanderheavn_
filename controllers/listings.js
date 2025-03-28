@@ -49,33 +49,34 @@ const formatTime = (timeString) => {
     return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
   
-module.exports.showListing = async (req, res) => {
-      const { id } = req.params;
-    
-      if (!mongoose.isValidObjectId(id)) {
+  module.exports.showListing = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
         req.flash("error", "Invalid listing ID.");
         return res.redirect("/listings");
-      }
-    
-      const listing = await Listing.findById(id)
+    }
+
+    const listing = await Listing.findById(id)
         .populate({
-          path: "reviews",
-          populate: { path: "author", select: "username" }
+            path: "reviews",
+            populate: { path: "author", select: "username" }
         })
-        .populate("owner", "username email")
+        .populate("owner", "_id username role")  // ✅ Ensure owner is populated
         .lean();
-  
-      if (!listing) {
+
+    if (!listing) {
         req.flash("error", "Listing not found.");
         return res.redirect("/listings");
-      }
-  
-    // ✅ Show time exactly as stored
-    listing.formattedCheckInTime = listing.checkInTime || "Not Set";
-    listing.formattedCheckOutTime = listing.checkOutTime || "Not Set";
-      res.render("listings/show", { listing });
-  };
-  
+    }
+       // ✅ Default values to prevent undefined errors
+    listing.formattedCheckInTime = listing.checkInTime || "Not Provided";
+    listing.formattedCheckOutTime = listing.checkOutTime || "Not Provided";
+     
+   
+    res.render("listings/show", { listing, currUser: req.user });
+};
+
 
 module.exports.createListing = async (req, res, next) => {
     console.log("🔥 Inside createListing");

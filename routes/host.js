@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const { isHost, validateListing, isLoggedIn,canCreateListing } = require("../middleware");
+const { isHost, validateListing, isLoggedIn,canCreateListing ,isAdminOrHost,isHostOrAdmin} = require("../middleware");
 const wrapAsync = require("../utils/wrapAsync");
 const Host =require("../models/host");
 const Listing=require("../models/listing");
@@ -16,11 +16,12 @@ const {
     manageBookings,
     approveBooking,
     rejectBooking,
-    logout,renderEditForm,updateListing,destroyListing
+    logout,renderEditForm,updateListing,destroyListing,deleteReviewAsHost
 } = require("../controllers/hosts");
 const multer = require("multer");
 const { storage } = require("../cloudConfig");
 const upload = multer({ storage });
+
 
 
 
@@ -41,13 +42,13 @@ router.get("/login", renderHostLoginForm);
 //     failureRedirect: "/host/login",
 //     successRedirect: "/host/dashboard"
 // }));
-router.post("/login", (req, res, next) => {
-    req.logout(() => next());
-}, passport.authenticate("host-local", {
+router.post("/login", passport.authenticate("host-local", {
     failureFlash: true,
-    failureRedirect: "/host/login",
-    successRedirect: "/host/dashboard"
-}));
+    failureRedirect: "/host/login"
+}), (req, res) => {
+    req.flash("success", "Welcome back to WanderHeavn!");
+    req.session.save(() => res.redirect("/host/dashboard")); // Ensure flash message is saved
+});
 
 
 // ==========================
@@ -111,4 +112,7 @@ router.put("/listings/:id",
   );
 
   router.delete("/listings/:id",isLoggedIn, isHost,wrapAsync(destroyListing));
+
+  router.delete("/listings/:listingId/reviews/:reviewId", isLoggedIn, isHostOrAdmin, wrapAsync(deleteReviewAsHost));
+
 module.exports = router;

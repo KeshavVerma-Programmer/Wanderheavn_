@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const { cloudinary } = require("../cloudConfig");
 const axios = require("axios"); 
 const mapToken = process.env.MAP_TOKEN;
+const Review=require("../models/review");
 // ==========================
 // HOST SIGNUP
 // ==========================
@@ -15,7 +16,7 @@ module.exports.renderHostSignupForm = (req, res) => {
 module.exports.hostSignup = async (req, res, next) => {
     console.log("Received Data:", req.body); // Debugging
 
-    const { username, email, phone, password} = req.body;
+    const { username, email, phone, password } = req.body;
 
     try {
         const newHost = new Host({ 
@@ -23,7 +24,6 @@ module.exports.hostSignup = async (req, res, next) => {
             email, 
             phone,
             role: "host",  // Ensure role is assigned
-            
         });
 
         const registeredHost = await Host.register(newHost, password);
@@ -34,14 +34,13 @@ module.exports.hostSignup = async (req, res, next) => {
             req.flash("success", "Welcome to WanderHeavn as a Host!");
             res.redirect("/host/dashboard");
         });
+
     } catch (error) {
         console.error("Signup Error:", error.message);
         req.flash("error", error.message);
-        res.render("hosts/signup", { username, email, phone });
+        res.redirect("/host/signup");  // 🔥 Redirect instead of render
     }
 };
-
-
 
 // ==========================
 // HOST LOGIN
@@ -201,11 +200,11 @@ module.exports.destroyListing = async (req, res) => {
     let deletedListing = await Listing.findByIdAndDelete(id);
     if (!deletedListing) {
         req.flash("error", "Listing not found or already deleted.");
-        return res.redirect("/host/manage-listings");
+        return res.redirect("/listings");
     }
 
     req.flash("success", "Listing Deleted!");
-    res.redirect("/host/manage-listings");
+    res.redirect("/listings");
 };
 // Function to get coordinates using MapTiler
 async function geocodeLocation(location) {
@@ -283,5 +282,36 @@ module.exports.updateListing = async (req, res) => {
         console.error("❌ Error updating listing:", error);
         req.flash("error", "Something went wrong while updating.");
         res.redirect(`/host/listings/${id}/edit`);
+    }
+};
+module.exports.deleteReviewAsHost = async (req, res) => {
+    try {
+        const { listingId, reviewId } = req.params;
+
+        // Find the listing and review
+        const listing = await Listing.findById(listingId);
+        const review = await Review.findById(reviewId);
+
+        if (!listing || !review) {
+            req.flash("error", "Listing or Review not found.");
+            return res.redirect(`/listings/${listingId}`);
+        }
+
+        // Ensure host owns the listing
+        if (req.user.role !== "admin" && (!listing.owner.equals(req.user._id))) {
+            req.flash("error", "You are not authorized to delete this review.");
+            return res.redirect(`/listings/${listingId}`);
+        }
+
+        // Delete review from listing
+        await Listing.findByIdAndUpdate(listingId, { $pull: { reviews: reviewId } });
+        await Review.findByIdAndDelete(reviewId);
+
+        req.flash("success", "Review deleted successfully!");
+        res.redirect(`/listings/${listingId}`);
+    } catch (error) {
+        console.error("Error deleting review as host:", error);
+        req.flash("error", "Failed to delete review. Try again.");
+        res.redirect(`/listings/${listingId}`);
     }
 };

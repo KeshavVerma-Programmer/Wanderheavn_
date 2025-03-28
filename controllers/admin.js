@@ -37,20 +37,22 @@ module.exports.logout = (req, res, next) => {
 // ==========================
 module.exports.adminDashboard = async (req, res) => {
     try {
-        const [totalUsers, totalListings, pendingReviews,totalhosts] = await Promise.all([
+        const [totalUsers, totalListings, totalReviews, pendingReviews, totalHosts] = await Promise.all([
             User.countDocuments({}),
             Listing.countDocuments({}),
+            Review.countDocuments({}),
             Review.countDocuments({ status: "Pending" }),
-            Host.countDocuments({})
+            Host.countDocuments({}) // Ensure correct host count
         ]);
 
-        res.render("admin/dashboard", { totalUsers, totalListings, pendingReviews ,totalhosts});
+        res.render("admin/dashboard", { totalUsers, totalListings, totalReviews, pendingReviews, totalHosts }); 
     } catch (error) {
         console.error("Dashboard Error:", error);
         req.flash("error", "Failed to load dashboard data.");
         res.redirect("/admin/login");
     }
 };
+
 
 // ==========================
 // MANAGE USERS
@@ -60,21 +62,42 @@ module.exports.manageUsers = async (req, res) => {
     res.render("admin/manageUsers", { users });
 };
 
-
 module.exports.deleteUser = async (req, res) => {
-    const { id } = req.params;
-    console.log("Deleting user with ID:", id);  // Debugging line
+    try {
+        const { id } = req.params;
+        console.log("Deleting user with ID:", id);  // Debugging line
 
-    if (!mongoose.isValidObjectId(id)) {
-        req.flash("error", "Invalid User ID.");
-        return res.redirect("/admin/manage-users");
+        // Validate if ID is a proper MongoDB ObjectId
+        if (!mongoose.isValidObjectId(id)) {
+            req.flash("error", "Invalid User ID.");
+            return res.redirect("/admin/manage-users");
+        }
+
+        // Find and delete all reviews authored by the user
+        const reviews = await Review.find({ author: id });
+
+        // Remove these reviews from their respective listings
+        await Listing.updateMany(
+            { reviews: { $in: reviews.map(review => review._id) } },
+            { $pull: { reviews: { $in: reviews.map(review => review._id) } } }
+        );
+
+        // Delete all reviews authored by the user
+        await Review.deleteMany({ author: id });
+
+        // Finally, delete the user
+        const user = await User.findByIdAndDelete(id);
+
+        console.log("Deleted User:", user);  // Debugging line
+
+        req.flash(user ? "success" : "error", user ? "User deleted successfully along with their reviews." : "User not found.");
+        res.redirect("/admin/manage-users");
+
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        req.flash("error", "Failed to delete user.");
+        res.redirect("/admin/manage-users");
     }
-
-    const user = await User.findByIdAndDelete(id);
-    console.log("Deleted User:", user);  // Debugging line
-
-    req.flash(user ? "success" : "error", user ? "user deleted successfully." : "user not found.");
-    res.redirect("/admin/manage-users");
 };
 // ==========================
 // MANAGE HOSTS
@@ -85,31 +108,42 @@ module.exports.manageHosts = async (req, res) => {
 };
 
 module.exports.deleteHosts = async (req, res) => {
-    const { id } = req.params;
-    console.log("Deleting host with ID:", id); // Debugging
-
-    if (!mongoose.isValidObjectId(id)) {
-        req.flash("error", "Invalid User ID.");
-        return res.redirect("/admin/manageHosts");
-    }
-
     try {
+        const { id } = req.params;
+        console.log("Deleting host with ID:", id); // Debugging
+
+        if (!mongoose.isValidObjectId(id)) {
+            req.flash("error", "Invalid Host ID.");
+            return res.redirect("/admin/manage-hosts");
+        }
+
         // Find the host first
         const host = await Host.findById(id);
         if (!host) {
             req.flash("error", "Host not found.");
-            return res.redirect("/admin/manageHosts");
+            return res.redirect("/admin/manage-hosts");
         }
+
+        // Find all listings owned by this host
+        const listings = await Listing.find({ owner: id });
+
+        // Collect all review IDs from these listings
+        const reviewIds = listings.reduce((acc, listing) => acc.concat(listing.reviews), []);
+
+        // Delete all reviews associated with these listings
+        await Review.deleteMany({ _id: { $in: reviewIds } });
+
+        console.log(`Deleted ${reviewIds.length} reviews on listings owned by Host ID:`, id);
 
         // Delete all listings associated with this host
         const deletedListings = await Listing.deleteMany({ owner: id });
         console.log(`Deleted ${deletedListings.deletedCount} listings of Host ID:`, id);
 
         // Delete all reviews written by the host (if applicable)
-        const deletedReviews = await Review.deleteMany({ author: id });
-        console.log(`Deleted ${deletedReviews.deletedCount} reviews by Host ID:`, id);
+        const deletedHostReviews = await Review.deleteMany({ author: id });
+        console.log(`Deleted ${deletedHostReviews.deletedCount} reviews by Host ID:`, id);
 
-        // Delete the host's account (including bank details, earnings, etc.)
+        // Finally, delete the host
         await Host.findByIdAndDelete(id);
         console.log("Deleted Host:", host);
 
@@ -199,24 +233,29 @@ module.exports.featureListing = async (req, res) => {
 // View Listing
 
 // Get a specific listing for admin view
-    // Controller to fetch and render a single listing for the admin
 module.exports.viewListing = async (req, res) => {
     try {
-      const { id } = req.params;
-      const listing = await Listing.findById(id).populate("owner");
-  
-      if (!listing) {
-        req.flash("error", "Listing not found!");
-        return res.redirect("/admin/listings");
-      }
-  
-      res.render("admin/listings/view", { listing });
+        const { id } = req.params;
+        const listing = await Listing.findById(id)
+            .populate("owner")  // Populate owner details
+            .populate({
+                path: "reviews",
+                populate: { path: "author", select: "username" } // Ensure author details are populated
+            });
+
+        if (!listing) {
+            req.flash("error", "Listing not found!");
+            return res.redirect("/admin/listings");
+        }
+
+        res.render("admin/listings/view", { listing });
     } catch (error) {
-      console.error("Error fetching listing:", error);
-      req.flash("error", "Something went wrong while fetching the listing.");
-      res.redirect("/admin/manage-listings");
+        console.error("Error fetching listing:", error);
+        req.flash("error", "Something went wrong while fetching the listing.");
+        res.redirect("/admin/manage-listings");
     }
-  };
+};
+
  // Render Edit Form
  // Render Edit Form
 
@@ -633,3 +672,61 @@ module.exports.deleteListing = async (req, res) => {
 };
 
 
+module.exports.destroyReview = async (req, res) => {
+    try {
+        let { id, reviewId } = req.params;
+
+        // Check if the review exists
+        const review = await Review.findById(reviewId);
+        if (!review) {
+            req.flash("error", "Review not found!");
+            return res.redirect(`/admin/listings/${id}`);
+        }
+
+        await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
+        await Review.findByIdAndDelete(reviewId);
+
+        req.flash("success", "Review Deleted!");
+        res.redirect(`/admin/listings/${id}`); // Corrected path
+    } catch (error) {
+        console.error("Error deleting review:", error);
+        req.flash("error", "Failed to delete review. Please try again.");
+        res.redirect(`/admin/listings/${id}`); // Corrected path
+    }
+};
+module.exports.viewAllReviews = async (req, res) => {
+    try {
+        const listings = await Listing.find({})
+            .populate({
+                path: "reviews",
+                populate: { path: "author" }
+            })
+            .populate("owner"); // <-- Ensure 'owner' is populated
+
+        res.render("admin/listings/manageReviews", { listings });
+    } catch (error) {
+        console.error("Error fetching reviews:", error);
+        req.flash("error", "Failed to load reviews.");
+        res.redirect("/admin/dashboard");
+    }
+};
+
+// ✅ Controller to delete a review
+module.exports.deleteReview = async (req, res) => {
+    try {
+        const { id, reviewId } = req.params;
+
+        // Remove review reference from the listing
+        await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
+
+        // Delete review from database
+        await Review.findByIdAndDelete(reviewId);
+
+        req.flash("success", "Review deleted successfully.");
+        res.redirect("/admin/listings/manage-reviews");
+    } catch (error) {
+        console.error("Error deleting review:", error);
+        req.flash("error", "Failed to delete review.");
+        res.redirect("/admin/listings/manage-reviews");
+    }
+};
