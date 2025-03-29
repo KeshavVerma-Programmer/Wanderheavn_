@@ -1,64 +1,106 @@
 <% layout("/layouts/boilerplate") %> 
 
 <style>
-  #filters {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 1rem;
+  #filter-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
   }
+
+  #filters {
+    display: flex;
+    align-items: center;
+    gap: 3.5rem;
+  }
+
   .filter {
     text-align: center;
-    margin-top: 1rem;
-    opacity: 0.7;
     cursor: pointer;
+    font-size: 12px;
+    opacity: 0.7;
   }
+
   .filter:hover {
     opacity: 1;
   }
-  .filter p {
-    font-size: 0.8rem;
+
+  .filter i {
+    font-size: 18px; /* Icon size */
   }
-  .tax-info {
-    display: none;
+
+  .price-range {
+    flex-grow: 1;
+    max-width: 40%;
+    text-align: center;
   }
-  .tax-toggle {
-    border: 1px solid black;
-    border-radius: 1rem;
-    height: 3.25rem;
-    padding: 1rem;
-    margin-left: 2rem;
-    display: flex;
-    align-items: center;
+
+  .price-range label {
+    font-size: 12px;
+    font-weight: bold;
+    display: block;
+  }
+
+  .price-range input[type="range"] {
+    width: 100%;
+    appearance: none;
+    background: transparent;
+  }
+
+  .price-range input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: rgb(185, 184, 181);
+    border-radius: 4px;
+  }
+
+  .price-range input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #ff5733;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -4px;
+  }
+
+  .price-range div {
+    font-size: 10px;
+    font-weight: bold;
+    color: #333;
   }
 </style>
 
-<!-- Filter Section -->
-<div id="filters">
-  <% const filters = [
-    { icon: "fa-fire", label: "Trending" },
-    { icon: "fa-bed", label: "Rooms" },
-    { icon: "fa-mountain-city", label: "Iconic Cities" },
-    { icon: "fa-mountain", label: "Mountains" },
-    { icon: "fa-fort-awesome", label: "Castles" },
-    { icon: "fa-person-swimming", label: "Amazing Pools" },
-    { icon: "fa-campground", label: "Camping" },
-    { icon: "fa-cow", label: "Farms" },
-    { icon: "fa-igloo", label: "Domes" },
-    { icon: "fa-ship", label: "Boats" }
-  ]; %>
+<!-- Filters and Price Range in One Row -->
+<div id="filter-container">
+  <div id="filters">
+    <% const filters = [
+      { icon: "fa-building", label: "Apartment" },
+      { icon: "fa-house-chimney", label: "Villa" },
+      { icon: "fa-house", label: "Cabin" },
+      { icon: "fa-home", label: "Bungalow" },
+      { icon: "fa-umbrella-beach", label: "Resort" },
+      { icon: "fa-campground", label: "Camping" }
+    ]; %>
 
-  <% filters.forEach(filter => { %>
-    <div class="filter">
-      <i class="fa-solid <%= filter.icon %>"></i>
-      <p><%= filter.label %></p>
-    </div>
-  <% }) %>
+    <% filters.forEach(filter => { %>
+      <div class="filter">
+        <i class="fa-solid <%= filter.icon %>"></i>
+        <p><%= filter.label %></p>
+      </div>
+    <% }) %>
+  </div>
 
-  <div class="tax-toggle">
-    <div class="form-check-reverse form-switch">
-      <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-      <label class="form-check-label" for="flexSwitchCheckDefault">Display total after Taxes</label>
+  <!-- Price Range Filter -->
+  <div class="price-range">
+    <input type="range" class="form-range" id="priceSlider" min="500" max="2500" step="500" value="500" oninput="updatePriceValue(this.value)">
+    <div class="d-flex justify-content-between">
+      <span>&#8377;500</span>
+      <span>&#8377;1000</span>
+      <span>&#8377;1500</span>
+      <span>&#8377;2000</span>
+      <span>&#8377;2500</span>
     </div>
   </div>
 </div>
@@ -78,8 +120,7 @@
         <div class="card-img-overlay"></div>
         <div class="card-body">
           <p class="card-text"><b><%= listing.title %></b><br>
-            &#8377; <%= listing.price.toLocaleString("en-IN") %> /night
-            <i class="tax-info"> &nbsp; &nbsp;+18% GST</i>
+            &#8377;<%= listing.price.toLocaleString("en-IN") %> /night
           </p>
         </div>
       </a>
@@ -87,12 +128,9 @@
   <% } %>
 </div> 
 
-<!-- Tax Toggle Script -->
-<script> 
-  document.getElementById("flexSwitchCheckDefault").addEventListener("click", () => {
-    const taxInfo = document.querySelectorAll(".tax-info");
-    taxInfo.forEach(info => {
-      info.style.display = info.style.display !== "inline" ? "inline" : "none";
-    });
-  });
+<!-- Price Range Script -->
+<script>
+  function updatePriceValue(value) {
+    document.getElementById("selectedPrice").innerText = value;
+  }
 </script>

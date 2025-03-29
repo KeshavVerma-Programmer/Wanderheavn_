@@ -22,9 +22,6 @@ const multer = require("multer");
 const { storage } = require("../cloudConfig");
 const upload = multer({ storage });
 
-
-
-
 const mongoose = require("mongoose"); // For ID validation
 
 // ==========================
@@ -37,11 +34,7 @@ router.post("/signup", wrapAsync(hostSignup));
 // HOST LOGIN
 // ==========================
 router.get("/login", renderHostLoginForm);
-// router.post("/login", passport.authenticate("host-local", {
-//     failureFlash: true,
-//     failureRedirect: "/host/login",
-//     successRedirect: "/host/dashboard"
-// }));
+
 router.post("/login", passport.authenticate("host-local", {
     failureFlash: true,
     failureRedirect: "/host/login"
@@ -49,7 +42,6 @@ router.post("/login", passport.authenticate("host-local", {
     req.flash("success", "Welcome back to WanderHeavn!");
     req.session.save(() => res.redirect("/host/dashboard")); // Ensure flash message is saved
 });
-
 
 // ==========================
 // HOST DASHBOARD
@@ -60,16 +52,11 @@ router.get("/dashboard", isHost, wrapAsync(renderDashboard));
 // MANAGE LISTINGS
 // ==========================
 router.get("/manage-listings", isHost, wrapAsync(manageListings));
-// router.post("/host/manage-listings", isLoggedIn, isHost, canCreateListing, validateListing, wrapAsync(addListing));
-
 
 router.get("/listings/new", isHost, (req, res) => {
     res.render("host/addListing"); // Make sure this path matches the actual location of `addListing.ejs`
 });
 router.post("/listings/new", isHost, validateListing, wrapAsync(addListing));
-
-
-
 
 // ==========================
 // MANAGE BOOKINGS
@@ -101,7 +88,7 @@ router.get("/profile", isHost, async (req, res) => {
         res.redirect("/host/dashboard");
     }
 });
-// /host/listings/:id/edit   already used app.use("/host",hostRoutes)
+
 router.get("/listings/:id/edit",isLoggedIn,isHost, renderEditForm);
 
 router.put("/listings/:id",

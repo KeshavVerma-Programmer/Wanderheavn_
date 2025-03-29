@@ -73,48 +73,8 @@ router
     wrapAsync(listingController.createListing)
   );
 
-
-// New listing form
-// router.get("/addListing", isLoggedIn, isHost, listingController.renderNewForm);
-
-
-// Show, Update, and Delete Listings
 router
   .route("/:id")
   .get(wrapAsync(listingController.showListing));
- 
-
-// Edit form
-
-
-// Route to update a specific listing (Admin Panel)
-// router.put("/listings/:id", isAdmin, upload.single("image"), updateListing);
-
-// .get(async (req, res) => {
-//     const { search, category } = req.query;
-//     let filter = {};
-  
-//     if (search) {
-//       filter = {
-//         $or: [
-//           { title: { $regex: search, $options: "i" } },
-//           { location: { $regex: search, $options: "i" } },
-//           { price: !isNaN(search) ? parseInt(search) : undefined }
-//         ].filter(Boolean)
-//       };
-//     }
-  
-//     if (category) {
-//       filter.category = category; // Match category in the database
-//     }
-  
-//     try {
-//       const allListings = await Listing.find(filter);
-//       res.render("listings/index", { allListings, category, search, currUser: req.user });
-//     } catch (err) {
-//       console.error(err);
-//       res.redirect("/listings");
-//     }
-//   }) GET Listings (Search & Filter)
 
 module.exports = router;

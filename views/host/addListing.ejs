@@ -6,14 +6,14 @@
 
       <div class="mb-3">
         <label for="title" class="form-label">Title</label>
-        <input id="title" name="listing[title]" placeholder="Enter title" type="text" class="form-control" required/>
+        <input id="title" name="listing[title]" placeholder="Enter title" type="text" class="form-control" minlength="5" required/>
         <div class="valid-feedback">Title looks good!</div>
       </div>
 
       <div class="mb-3">
         <label for="description" class="form-label">Description</label>
-        <textarea id="description" name="listing[description]" class="form-control" required></textarea>
-        <div class="invalid-feedback">Please enter a short description</div>
+        <textarea id="description" name="listing[description]" class="form-control" minlength="10" required></textarea>
+        <div class="invalid-feedback">Description must be at least 10 characters long.</div>
       </div>
 
       <!-- Category Field -->
@@ -89,6 +89,8 @@
     </form>
   </div>
 </div>
+<br><br>
+<a href="/host/dashboard" class="btn btn-secondary">Back</a>
 <script>
   document.getElementById("location").addEventListener("change", async function () {
       const location = this.value;

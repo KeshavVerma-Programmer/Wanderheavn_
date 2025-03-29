@@ -24,31 +24,6 @@ module.exports.isLoggedIn = (req, res, next) => {
     next();
 };
 
-// Ownership validation for listings
-// module.exports.isOwnerOrAdmin = async (req, res, next) => {
-//     const { id } = req.params;
-//     const listing = await Listing.findById(id);
-
-//     console.log("🔍 Checking Ownership for:", id);
-//     console.log("📌 Listing Found:", listing);
-//     console.log("👤 Current User:", res.locals.currUser);
-
-//     if (!listing) {
-//         req.flash("error", "Listing not found!");
-//         return res.redirect("/host/manage-listings");
-//     }
-
-//     if (listing.owner.toString() !== res.locals.currUser._id.toString() && res.locals.currUser.role !== "admin") {
-//         console.log("❌ Access Denied - Not Owner or Admin");
-//         req.flash("error", "You do not have permission to edit this listing.");
-//         return res.redirect(`/listings/${id}`);
-//     }
-
-//     console.log("✅ Passed Ownership Check");
-//     next();
-// };
-
-
 // Saves redirect URL for post-login redirection
 module.exports.saveRedirectUrl = (req, res, next) => {
     if (req.session.redirectUrl) {

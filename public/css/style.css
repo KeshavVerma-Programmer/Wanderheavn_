@@ -28,6 +28,7 @@ body{
 .f-info-links a{
     text-decoration: none;
     color: #222222;
+    padding: 1px;
 }
 .f-info-links a:hover{
     text-decoration: underline;
