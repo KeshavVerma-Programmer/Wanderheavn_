@@ -156,9 +156,6 @@ module.exports.deleteHosts = async (req, res) => {
     res.redirect("/admin/manage-hosts");
 };
 
-
-
-
 // ==========================
 // MANAGE LISTINGS
 // ==========================
@@ -179,7 +176,6 @@ module.exports.manageListings = async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 };
-
 
 module.exports.approveListing = async (req, res) => {
     const { id } = req.params;

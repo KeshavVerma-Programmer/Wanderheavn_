@@ -77,4 +77,38 @@ router
   .route("/:id")
   .get(wrapAsync(listingController.showListing));
 
+router.get("/:id/book", isLoggedIn, wrapAsync(async (req, res) => {
+    const { id } = req.params;
+    const listing = await Listing.findById(id);
+    
+    if (!listing) {
+        req.flash("error", "Listing not found!");
+        return res.redirect("/listings");
+    }
+    
+    res.render("bookings/book", { listing, currUser: req.user });
+}));
+router.post("/:id/book", isLoggedIn, wrapAsync(async (req, res) => {
+  const { id } = req.params;
+  const { checkIn, checkOut } = req.body;
+
+  // Validate input
+  if (!checkIn || !checkOut) {
+      req.flash("error", "Please select check-in and check-out dates.");
+      return res.redirect(`/listings/${id}/book`);
+  }
+
+  // Check listing availability (Later we will improve this with database logic)
+  const listing = await Listing.findById(id);
+  if (!listing) {
+      req.flash("error", "Listing not found.");
+      return res.redirect("/listings");
+  }
+
+  // Save booking to database (Needs a Booking model)
+  req.flash("success", "Booking confirmed! Proceed to payment.");
+  res.redirect(`/listings/${id}/payment`); // Redirect to payment page
+}));
+
+
 module.exports = router;

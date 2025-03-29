@@ -1,0 +1,24 @@
+<%- include("../partials/header.ejs") %>
+
+<div class="container mt-5">
+  <h2>Book <%= listing.title %></h2>
+  <img src="<%= listing.images.length > 0 ? listing.images[0].url : '/default-image.jpg' %>" class="img-fluid" alt="Listing Image">
+  
+  <form action="/listings/<%= listing._id %>/book" method="POST">
+    <div class="mb-3">
+      <label for="checkIn" class="form-label">Check-in Date</label>
+      <input type="date" id="checkIn" name="checkIn" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="checkOut" class="form-label">Check-out Date</label>
+      <input type="date" id="checkOut" name="checkOut" class="form-control" required>
+    </div>
+
+    <p><strong>Price per night: </strong> &#8377; <%= listing.price.toLocaleString("en-IN") %></p>
+    
+    <button type="submit" class="btn btn-success">Proceed to Payment</button>
+  </form>
+</div>
+
+<%- include("../partials/footer.ejs") %>

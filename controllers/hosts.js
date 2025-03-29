@@ -171,20 +171,6 @@ module.exports.manageBookings = async (req, res) => {
     res.render("host/manageBookings", { bookings });
 };
 
-module.exports.approveBooking = async (req, res) => {
-    const { id } = req.params;
-    const booking = await Booking.findByIdAndUpdate(id, { status: "Confirmed" });
-    req.flash(booking ? "success" : "error", booking ? "Booking approved successfully!" : "Booking not found.");
-    res.redirect("/host/manage-bookings");
-};
-
-module.exports.rejectBooking = async (req, res) => {
-    const { id } = req.params;
-    const booking = await Booking.findByIdAndUpdate(id, { status: "Rejected" });
-    req.flash(booking ? "success" : "error", booking ? "Booking rejected successfully!" : "Booking not found.");
-    res.redirect("/host/manage-bookings");
-};
-
 // ==========================
 // LOGOUT
 // ==========================
