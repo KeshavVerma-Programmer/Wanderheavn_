@@ -49,7 +49,11 @@
                         </div>
                     
                         <!-- Login Button -->
-                        <button class="btn btn-success w-100 fw-bold">Login as User</button>
+                        <button id="loginBtn" class="btn btn-success w-100 fw-bold" type="submit">
+                            Login as User
+                            <span id="loginSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                        
                     </form>
                     
                     <!-- Additional Links -->
@@ -71,26 +75,42 @@
     togglePassword.addEventListener("click", () => {
         const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
         passwordInput.setAttribute("type", type);
-
-        // Toggle eye icon
         togglePassword.classList.toggle("fa-eye-slash");
     });
 
-    // Bootstrap Form Validation
-    (function () {
-        'use strict'
-        const forms = document.querySelectorAll('.needs-validation')
-        Array.from(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
+    // Bootstrap Form Validation + Spinner on Submit
+    (() => {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
                 if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    event.preventDefault(); // Stop actual form submission
+
+                    // Show spinner and disable button
+                    const loginBtn = document.getElementById("loginBtn");
+                    const loginSpinner = document.getElementById("loginSpinner");
+
+                    loginBtn.disabled = true;
+                    loginSpinner.classList.remove("d-none");
+
+                    setTimeout(() => {
+                        loginBtn.disabled = false;
+                        loginSpinner.classList.add("d-none");
+                        form.submit();
+                    }, 1000);
                 }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })()
+
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
 </script>
+
 
 <!-- FontAwesome for Icons -->
 <script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script>

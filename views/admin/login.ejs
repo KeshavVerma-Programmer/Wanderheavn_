@@ -56,7 +56,10 @@
                         </div>
                     
                         <!-- Login Button -->
-                        <button class="btn btn-danger w-100 fw-bold">Login as Admin</button>
+                        <button id="adminLoginBtn" type="submit" class="btn btn-danger w-100 fw-bold">
+                            Login as Admin
+                            <span id="adminSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
                     </form>
                     <br>
                 </div>
@@ -78,18 +81,34 @@
         togglePassword.classList.toggle("fa-eye-slash");
     });
 
-    // Bootstrap Form Validation
+    // Bootstrap Form Validation with Spinner Effect
     (function () {
         'use strict'
-        const forms = document.querySelectorAll('.needs-validation')
+        const forms = document.querySelectorAll('.needs-validation');
+        const loginBtn = document.getElementById("adminLoginBtn");
+        const loginSpinner = document.getElementById("adminSpinner");
+
         Array.from(forms).forEach(function (form) {
             form.addEventListener('submit', function (event) {
                 if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    event.preventDefault(); // Prevent immediate submission for animation
+
+                    // Show spinner & disable button
+                    loginBtn.disabled = true;
+                    loginSpinner.classList.remove("d-none");
+
+                    // Simulate processing (2 sec), then submit
+                    setTimeout(() => {
+                        loginBtn.disabled = false;
+                        loginSpinner.classList.add("d-none");
+                        form.submit(); // Now submit the form
+                    }, 2000);
                 }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })()
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
 </script>

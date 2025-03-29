@@ -19,6 +19,22 @@ module.exports.hostSignup = async (req, res, next) => {
     const { username, email, phone, password } = req.body;
 
     try {
+        // ✅ Username must be at least 5 characters
+        if (username.length < 5) {
+            req.flash("error", "Username must be at least 5 characters long.");
+            return res.redirect("/host/signup");
+        }
+
+        // ✅ Password must be at least 6 characters and contain a special character
+        if (password.length < 6) {
+            req.flash("error", "Password must be at least 6 characters long.");
+            return res.redirect("/host/signup");
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            req.flash("error", "Password must contain at least one special character (!@#$%^&* etc).");
+            return res.redirect("/host/signup");
+        }
+
         const newHost = new Host({ 
             username, 
             email, 
@@ -32,15 +48,41 @@ module.exports.hostSignup = async (req, res, next) => {
             if (err) return next(err);
             console.log("Logged in user:", req.user); // Debugging
             req.flash("success", "Welcome to WanderHeavn as a Host!");
-            res.redirect("/host/dashboard");
+            return res.redirect("/host/dashboard");
         });
 
     } catch (error) {
-        console.error("Signup Error:", error.message);
-        req.flash("error", error.message);
-        res.redirect("/host/signup");  // 🔥 Redirect instead of render
+        console.error("Signup Error:", error);
+
+        // ✅ Handle duplicate key errors (MongoDB error code 11000)
+        if (error.code === 11000 && error.keyPattern) {
+            if (error.keyPattern.email) {
+                req.flash("error", "This email is already registered. Try another one.");
+            } else if (error.keyPattern.phone) {
+                req.flash("error", "This phone number is already in use. Use a different one.");
+            } else if (error.keyPattern.username) {
+                req.flash("error", "This username is already taken. Try another.");
+            } else {
+                req.flash("error", "Duplicate value detected. Please try again.");
+            }
+        } 
+        // ✅ Handle password-related errors from Passport
+        else if (error.name === "UserExistsError") {
+            req.flash("error", "This username is already taken. Try another.");
+        } 
+        // ✅ Handle email format errors
+        else if (error.errors?.email?.message) {
+            req.flash("error", "Invalid email format. Please enter a valid email.");
+        }
+        // ✅ General error fallback
+        else {
+            req.flash("error", "Something went wrong. Please check your details and try again.");
+        }
+
+        return res.redirect("/host/signup");
     }
 };
+
 
 // ==========================
 // HOST LOGIN
@@ -66,10 +108,6 @@ module.exports.hostLogin = (req, res) => {
     res.redirect("/host/dashboard");
 };
 
-
-
-
-
 // ==========================
 // DASHBOARD
 // ==========================
@@ -92,7 +130,6 @@ module.exports.renderDashboard = async (req, res) => {
         res.redirect("/listings");
     }
 };
-
 
 // ==========================
 // MANAGE LISTINGS
@@ -125,39 +162,6 @@ module.exports.addListing = async (req, res) => {
         res.redirect("/host/manage-listings");
     }
 };
-
-
-
-// module.exports.editListing = async (req, res) => {
-//     const { id } = req.params;
-//     if (!mongoose.isValidObjectId(id)) {
-//         req.flash("error", "Invalid Listing ID.");
-//         return res.redirect("/host/manage-listings");
-//     }
-
-//     const listing = await Listing.findById(id);
-//     if (!listing || !listing.owner.equals(req.user._id)) {
-//         req.flash("error", "Listing not found or unauthorized access.");
-//         return res.redirect("/host/manage-listings");
-//     }
-
-//     await Listing.findByIdAndUpdate(id, req.body.listing);
-//     req.flash("success", "Listing updated successfully!");
-//     res.redirect("/host/manage-listings");
-// };
-
-// module.exports.deleteListing = async (req, res) => {
-//     const { id } = req.params;
-//     const listing = await Listing.findById(id);
-//     if (!listing || !listing.owner.equals(req.user._id)) {
-//         req.flash("error", "Listing not found or unauthorized access.");
-//         return res.redirect("/host/manage-listings");
-//     }
-
-//     await Listing.findByIdAndDelete(id);
-//     req.flash("success", "Listing deleted successfully.");
-//     res.redirect("/host/manage-listings");
-// };
 
 // ==========================
 // MANAGE BOOKINGS

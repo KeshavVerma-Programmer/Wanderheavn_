@@ -1,6 +1,24 @@
 <% layout("/layouts/boilerplate") %> 
 
 <style>
+    
+  body {
+      opacity: 0;
+      animation: fadeIn 0.8s ease-in-out forwards;
+  }
+
+  /* Keyframes for Fade-In */
+  @keyframes fadeIn {
+      from {
+          opacity: 0;
+          transform: translateY(-10px);
+      }
+      to {
+          opacity: 1;
+          transform: translateY(0);
+      }
+  }
+
   #filter-container {
     display: flex;
     align-items: center;
@@ -13,7 +31,7 @@
   #filters {
     display: flex;
     align-items: center;
-    gap: 3.5rem;
+    gap: 7rem;
   }
 
   .filter {
@@ -29,46 +47,6 @@
 
   .filter i {
     font-size: 18px; /* Icon size */
-  }
-
-  .price-range {
-    flex-grow: 1;
-    max-width: 40%;
-    text-align: center;
-  }
-
-  .price-range label {
-    font-size: 12px;
-    font-weight: bold;
-    display: block;
-  }
-
-  .price-range input[type="range"] {
-    width: 100%;
-    appearance: none;
-    background: transparent;
-  }
-
-  .price-range input[type="range"]::-webkit-slider-runnable-track {
-    height: 4px;
-    background: rgb(185, 184, 181);
-    border-radius: 4px;
-  }
-
-  .price-range input[type="range"]::-webkit-slider-thumb {
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    background: #ff5733;
-    border-radius: 50%;
-    cursor: pointer;
-    margin-top: -4px;
-  }
-
-  .price-range div {
-    font-size: 10px;
-    font-weight: bold;
-    color: #333;
   }
 </style>
 
@@ -91,19 +69,6 @@
       </div>
     <% }) %>
   </div>
-
-  <!-- Price Range Filter -->
-  <div class="price-range">
-    <input type="range" class="form-range" id="priceSlider" min="500" max="2500" step="500" value="500" oninput="updatePriceValue(this.value)">
-    <div class="d-flex justify-content-between">
-      <span>&#8377;500</span>
-      <span>&#8377;1000</span>
-      <span>&#8377;1500</span>
-      <span>&#8377;2000</span>
-      <span>&#8377;2500</span>
-    </div>
-  </div>
-</div>
 
 <!-- Listings Section -->
 <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
@@ -130,7 +95,10 @@
 
 <!-- Price Range Script -->
 <script>
-  function updatePriceValue(value) {
-    document.getElementById("selectedPrice").innerText = value;
-  }
+  
+  document.addEventListener("DOMContentLoaded", () => {
+    document.body.style.opacity = "1";
+    document.body.style.transition = "opacity 0.8s ease-in-out";
+});
+  
 </script>

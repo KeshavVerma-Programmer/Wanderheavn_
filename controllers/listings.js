@@ -79,7 +79,7 @@ const formatTime = (timeString) => {
 
 
 module.exports.createListing = async (req, res, next) => {
-    console.log("🔥 Inside createListing");
+    console.log("Inside createListing");
     console.log("Received Body:", req.body);
 
     try {
@@ -99,7 +99,7 @@ module.exports.createListing = async (req, res, next) => {
         }
 
         const location = req.body.listing.location;
-        console.log("📍 Location provided:", location);
+        console.log("Location provided:", location);
 
         if (!location) {
             req.flash("error", "Location is required.");
@@ -118,29 +118,29 @@ module.exports.createListing = async (req, res, next) => {
             }
 
             if (!coordinates || coordinates.length !== 2) {
-                console.error("❌ Failed to fetch valid coordinates");
+                console.error("Failed to fetch valid coordinates");
                 req.flash("error", "Could not determine location coordinates. Try another location.");
                 return res.redirect("/host/addListing");
             }
         } catch (geoError) {
-            console.error("❌ Error Fetching Coordinates:", geoError);
+            console.error("Error Fetching Coordinates:", geoError);
             req.flash("error", "Failed to fetch coordinates. Try again later.");
             return res.redirect("/host/addListing");
         }
 
-        console.log("📌 Fetched Coordinates:", coordinates);
+        console.log("Fetched Coordinates:", coordinates);
 
         req.body.listing.geometry = {
             type: "Point",
             coordinates: coordinates,
         };
 
-        console.log("📍 Final Geometry:", req.body.listing.geometry);
+        console.log("Final Geometry:", req.body.listing.geometry);
 
         // ✅ Validate using Joi schema
         const { error } = listingSchema.validate(req.body);
         if (error) {
-            console.log("❌ Validation Error:", error.details);
+            console.log("Validation Error:", error.details);
             req.flash("error", error.details.map(err => err.message).join(", "));
             return res.redirect("/host/addListing");
         }
@@ -151,16 +151,16 @@ module.exports.createListing = async (req, res, next) => {
             images: req.files ? req.files.map(file => ({ url: file.path, filename: file.filename })) : [],
         });
 
-        console.log("✅ Ready to save listing:", newListing);
+        console.log("Ready to save listing:", newListing);
 
         await newListing.save();
-        console.log("🎉 Listing Created Successfully!");
+        console.log("Listing Created Successfully!");
 
         req.flash("success", "New Listing Created!");
         res.redirect("/listings");
 
     } catch (error) {
-        console.error("🚨 Error creating listing:", error);
+        console.error("Error creating listing:", error);
         req.flash("error", "Failed to create listing.");
         res.redirect("/host/addListing");
     }

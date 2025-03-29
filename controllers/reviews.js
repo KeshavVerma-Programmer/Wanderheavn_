@@ -31,11 +31,10 @@ module.exports.createReview = async (req, res) => {
         res.redirect(`/listings/${listing._id}`);
     } catch (error) {
         console.error("Error creating review:", error);
-        req.flash("error", "Failed to create review. Please try again.");
+        req.flash("error", "Comment should be at least 5 characters long.");
         res.redirect(`/listings/${req.params.id}`);
     }
 };
-
 
 module.exports.destroyReview = async (req, res) => {
     try {

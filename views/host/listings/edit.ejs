@@ -6,14 +6,14 @@
       
       <div class="mb-3">
         <label for="title" class="form-label">Title</label>
-        <input id="title" name="listing[title]" type="text" class="form-control" value="<%= listing.title %>" required />
-        <div class="valid-feedback">Title looks good!</div>
+        <input id="title" name="listing[title]" type="text" class="form-control" minlength="5" maxlength="100" value="<%= listing.title %>" required />
+        <div class="invalid-feedback">Title must be between 5 and 100 characters.</div>
       </div>
 
       <div class="mb-3">
         <label for="description" class="form-label">Description</label>
-        <textarea id="description" name="listing[description]" class="form-control" required><%= listing.description %></textarea>
-        <div class="invalid-feedback">Please enter a short description</div>
+        <textarea id="description" name="listing[description]" class="form-control" minlength="10" maxlength="500" required><%= listing.description %></textarea>
+        <div class="invalid-feedback">Description must be between 10 and 500 characters.</div>
       </div>
 
       <!-- Category Field -->
@@ -110,6 +110,33 @@
 </div>
 
 <script>
+  // Custom validation for Bootstrap
+  document.getElementById("listingForm").addEventListener("submit", function(event) {
+    const form = event.target;
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    form.classList.add("was-validated");
+  });
+
+  document.getElementById("title").addEventListener("input", function () {
+    const title = this.value.trim();
+    if (title.length < 5 || title.length > 100) {
+      this.setCustomValidity("Title must be between 5 and 100 characters.");
+    } else {
+      this.setCustomValidity("");
+    }
+  });
+
+  // Image validation (at least one file should be selected)
+  document.getElementById("image").addEventListener("change", function() {
+    if (this.files.length === 0) {
+      this.setCustomValidity("Please upload at least one image.");
+    } else {
+      this.setCustomValidity("");
+    }
+  });
   document.getElementById("location").addEventListener("change", async function () {
       const location = this.value;
       const mapToken = "6Z8EerHHhFtWsqh3cfqv"; // Replace with your actual MapTiler API key
