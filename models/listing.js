@@ -86,7 +86,9 @@ const listingSchema = new Schema(
     checkOutTime: { 
       type: String, 
       required: true 
-    }
+    },
+    // Store booked dates
+    bookedDates: [{ type: Date }]
   },
   { timestamps: true }
 );

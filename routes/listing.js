@@ -9,6 +9,7 @@ const multer = require("multer");
 const { storage } = require("../cloudConfig.js");
 const upload = multer({ storage });
 const mongoose = require("mongoose");
+const Booking = require("../models/booking.js");
 
 // Route to display all listings
 router
@@ -77,7 +78,7 @@ router
   .route("/:id")
   .get(wrapAsync(listingController.showListing));
 
-router.get("/:id/book", isLoggedIn, wrapAsync(async (req, res) => {
+  router.get("/:id/book", isLoggedIn, wrapAsync(async (req, res) => {
     const { id } = req.params;
     const listing = await Listing.findById(id);
     
@@ -88,27 +89,60 @@ router.get("/:id/book", isLoggedIn, wrapAsync(async (req, res) => {
     
     res.render("bookings/book", { listing, currUser: req.user });
 }));
+
 router.post("/:id/book", isLoggedIn, wrapAsync(async (req, res) => {
-  const { id } = req.params;
-  const { checkIn, checkOut } = req.body;
+    const { id } = req.params;
+    const listing = await Listing.findById(id);
+    
+    if (!listing) {
+        req.flash("error", "Listing not found.");
+        return res.redirect("/listings");
+    }
 
-  // Validate input
-  if (!checkIn || !checkOut) {
-      req.flash("error", "Please select check-in and check-out dates.");
-      return res.redirect(`/listings/${id}/book`);
-  }
+    // Set predefined check-in and check-out dates
+    const checkInDate = new Date(); // Default to today
+    const checkOutDate = new Date(checkInDate);
+    checkOutDate.setDate(checkOutDate.getDate() + 3); // Example: Fixed 3-day stay
 
-  // Check listing availability (Later we will improve this with database logic)
-  const listing = await Listing.findById(id);
-  if (!listing) {
-      req.flash("error", "Listing not found.");
-      return res.redirect("/listings");
-  }
+    // Check if the listing is already booked for the predefined dates
+    const existingBooking = await Booking.findOne({
+        property: id,
+        $or: [
+            { checkInDate: { $lt: checkOutDate }, checkOutDate: { $gt: checkInDate } } // Overlapping dates
+        ]
+    });
 
-  // Save booking to database (Needs a Booking model)
-  req.flash("success", "Booking confirmed! Proceed to payment.");
-  res.redirect(`/listings/${id}/payment`); // Redirect to payment page
+    if (existingBooking) {
+        req.flash("error", "This listing is already booked for the selected dates.");
+        return res.redirect(`/listings/${id}/book`);
+    }
+
+    // Store new booking
+    const newBooking = new Booking({
+        property: id,
+        guest: req.user._id,
+        host: listing.owner,
+        checkInDate,
+        checkOutDate,
+        totalPrice: (Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))) * listing.price,
+        status: "Active"
+    });
+
+    await newBooking.save();
+
+    // Add booked dates to Listing model
+    const bookedDates = [];
+    let currentDate = new Date(checkInDate);
+    while (currentDate <= checkOutDate) {
+        bookedDates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    listing.bookedDates.push(...bookedDates);
+    await listing.save();
+
+    req.flash("success", "Booking confirmed! Proceed to payment.");
+    res.redirect(`/listings/${id}/payment`);
 }));
-
 
 module.exports = router;

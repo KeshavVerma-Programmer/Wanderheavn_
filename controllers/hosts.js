@@ -83,7 +83,6 @@ module.exports.hostSignup = async (req, res, next) => {
     }
 };
 
-
 // ==========================
 // HOST LOGIN
 // ==========================

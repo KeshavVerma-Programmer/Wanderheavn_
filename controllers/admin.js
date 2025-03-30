@@ -53,7 +53,6 @@ module.exports.adminDashboard = async (req, res) => {
     }
 };
 
-
 // ==========================
 // MANAGE USERS
 // ==========================
@@ -215,19 +214,6 @@ module.exports.featureListing = async (req, res) => {
     res.redirect("/admin/manage-listings");
 };
 
-// module.exports.deleteListing = async (req, res) => {
-//     const { id } = req.params;
-//     if (!mongoose.isValidObjectId(id)) {
-//         req.flash("error", "Invalid Listing ID.");
-//         return res.redirect("/admin/manage-listings");
-//     }
-
-//     const listing = await Listing.findByIdAndDelete(id);
-//     req.flash(listing ? "success" : "error", listing ? "Listing deleted successfully." : "Listing not found.");
-//     res.redirect("/admin/manage-listings");
-// };
-// View Listing
-
 // Get a specific listing for admin view
 module.exports.viewListing = async (req, res) => {
     try {
@@ -251,9 +237,6 @@ module.exports.viewListing = async (req, res) => {
         res.redirect("/admin/manage-listings");
     }
 };
-
- // Render Edit Form
- // Render Edit Form
 
  // Function to get coordinates using MapTiler
 async function geocodeLocation(location) {
@@ -290,38 +273,6 @@ module.exports.renderEditForm = async (req, res) => {
     }
 };
 
-// Update Listing
-// module.exports.updateListing = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
-
-//         // Handle Image Upload
-//         if (req.file) {
-//             if (listing.image && listing.image.public_id) {
-//                 await cloudinary.uploader.destroy(listing.image.public_id); // Delete old image
-//             }
-//             listing.image = { url: req.file.path, public_id: req.file.filename };
-//         }
-
-//         // Handle Geocoding with MapTiler
-//         if (req.body.listing.location) {
-//             const geoData = await geocodeLocation(req.body.listing.location);
-//             if (geoData) {
-//                 listing.geometry = geoData; // Store coordinates
-//             }
-//         }
-
-//         await listing.save();
-//         req.flash("success", "Listing updated successfully!");
-//         res.redirect(`/admin/listings/${listing._id}`);
-//     } catch (error) {
-//         console.error("❌ Error updating listing:", error);
-//         req.flash("error", "Something went wrong while updating.");
-//         res.redirect(`/admin/listings/${id}/edit`);
-//     }
-// };
-//this is upper bhabuti mala 
 module.exports.updateListing = async (req, res) => {
     try {
         const { id } = req.params;
@@ -368,261 +319,6 @@ module.exports.updateListing = async (req, res) => {
     }
 };
 
-
- 
-
-//   Render Edit Form (Admin)
-//   module.exports.renderEditForm = async (req, res) => {
-//       try {
-//           const { id } = req.params;
-//           const listing = await Listing.findById(id);
-//           if (!listing) {
-//               req.flash("error", "Listing not found!");
-//               return res.redirect("/admin/dashboard");
-//           }
-//           res.render("admin/listings/edit", { listing });
-//       } catch (err) {
-//           console.error(err);
-//           req.flash("error", "Something went wrong!");
-//           res.redirect("/admin/dashboard");
-//       }
-//   };
-  
-//   // Update Listing (Admin)
-//   module.exports.updateListing = async (req, res) => {
-//       try {
-//           const { id } = req.params;
-//           const { title, description, category, price, country, location, status, deleteImages } = req.body.listing;
-  
-//           // Fetch updated geolocation from MapTiler
-//           let geometry = {};
-//           if (location) {
-//               const response = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(location)}.json?key=${process.env.MAP_TOKEN}`);
-//               const data = await response.json();
-//               if (data.features && data.features.length > 0) {
-//                   geometry = {
-//                       type: "Point",
-//                       coordinates: data.features[0].geometry.coordinates
-//                   };
-//               }
-//           }
-  
-//           // Update Listing Data
-//           const updatedListing = await Listing.findByIdAndUpdate(id, {
-//               title,
-//               description,
-//               category,
-//               price,
-//               country,
-//               location,
-//               status,
-//               geometry
-//           }, { new: true });
-  
-//           // Handle Image Deletion (If Admin Removes Images)
-//           if (deleteImages && deleteImages.length > 0) {
-//               for (let filename of deleteImages) {
-//                   await cloudinary.uploader.destroy(filename);
-//                   updatedListing.images = updatedListing.images.filter(img => img.filename !== filename);
-//               }
-//               await updatedListing.save();
-//           }
-  
-//           // Handle Image Upload (Adding New Images)
-//           if (req.files && req.files.length > 0) {
-//               const newImages = req.files.map(file => ({ url: file.path, filename: file.filename }));
-//               updatedListing.images.push(...newImages);
-//               await updatedListing.save();
-//           }
-  
-//           req.flash("success", "Listing updated successfully!");
-//           res.redirect(`/admin/listings/${id}/edit`);
-//       } catch (err) {
-//           console.error(err);
-//           req.flash("error", "Failed to update listing!");
-//           res.redirect(`/admin/listings/${id}/edit`);
-//       }
-//   };
-
-// this is error 
-// // Update Listing (Admin)
-// module.exports.updateListing = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const { title, description, category, price, country, location, status } = req.body.listing || {};
-
-//         // Find the listing
-//         const listing = await Listing.findById(id);
-//         if (!listing) {
-//             req.flash("error", "Listing not found!");
-//             return res.redirect("/admin/dashboard");
-//         }
-
-//         // Preserve existing geometry unless a new location is provided
-//         let geometry = listing.geometry;
-//         if (location && location.trim() !== "") {
-//             try {
-//                 const response = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(location)}.json?key=${process.env.MAP_TOKEN}`);
-//                 const data = await response.json();
-//                 if (data.features && data.features.length > 0) {
-//                     geometry = {
-//                         type: "Point",
-//                         coordinates: data.features[0].geometry.coordinates
-//                     };
-//                 }
-//             } catch (geoError) {
-//                 console.error("Error fetching geolocation:", geoError);
-//                 req.flash("error", "Failed to update geolocation.");
-//             }
-//         }
-
-//         // Handle new image upload (Replace existing image)
-//         if (req.file) {
-//             if (listing.image && listing.image.filename) {
-//                 // Delete the old image from Cloudinary
-//                 await cloudinary.uploader.destroy(listing.image.filename);
-//             }
-//             // Save new image
-//             listing.image = { url: req.file.path, filename: req.file.filename };
-//         }
-
-//         // Update listing data
-//         listing.title = title;
-//         listing.description = description;
-//         listing.category = category;
-//         listing.price = price;
-//         listing.country = country;
-//         listing.location = location;
-//         listing.status = status;
-//         listing.geometry = geometry;
-
-//         await listing.save();
-
-//         req.flash("success", "Listing updated successfully!");
-//         res.redirect(`/admin/listings/${id}`); // Redirect to details page instead of edit page
-//     } catch (err) {
-//         console.error("Error updating listing:", err);
-//         req.flash("error", "Failed to update listing!");
-//         res.redirect(`/admin/listings/${id}/edit`);
-//     }
-// };
-
-
-// // Render Edit Form (Admin)
-// module.exports.renderEditForm = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const listing = await Listing.findById(id);
-//         if (!listing) {
-//             req.flash("error", "Listing not found!");
-//             return res.redirect("/admin/dashboard");
-//         }
-//         res.render("admin/listings/edit", { listing });
-//     } catch (err) {
-//         console.error(err);
-//         req.flash("error", "Something went wrong!");
-//         res.redirect("/admin/dashboard");
-//     }
-// };
-
-// // Update Listing (Admin)
-// module.exports.updateListing = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const { title, description, price, country, location } = req.body.listing;
-
-//         // Fetch updated geolocation from MapTiler
-//         let geometry = {};
-//         if (location) {
-//             const response = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(location)}.json?key=${process.env.MAP_TOKEN}`);
-//             const data = await response.json();
-//             if (data.features && data.features.length > 0) {
-//                 geometry = {
-//                     type: "Point",
-//                     coordinates: data.features[0].geometry.coordinates
-//                 };
-//             }
-//         }
-
-//         // Update Listing Data
-//         const updatedListing = await Listing.findByIdAndUpdate(id, {
-//             title,
-//             description,
-//             price,
-//             country,
-//             location,
-//             geometry
-//         });
-
-//         // Handle Image Upload
-//         if (req.file) {
-//             const imageUrl = { url: req.file.path, filename: req.file.filename };
-//             updatedListing.images.push(imageUrl);
-//             await updatedListing.save();
-//         }
-
-//         req.flash("success", "Listing updated successfully!");
-//         res.redirect(`/admin/listings/${id}/edit`);
-//     } catch (err) {
-//         console.error(err);
-//         req.flash("error", "Failed to update listing!");
-//         res.redirect(`/admin/listings/${id}/edit`);
-//     }
-// };
-//bhabuti makla 
-// module.exports.showDeletePage = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const listing = await Listing.findById(id);
-
-//         if (!listing) {
-//             req.flash("error", "Listing not found.");
-//             return res.redirect("/admin/manage-listings");
-//         }
-
-//         res.render("admin/listings/delete", { listing });
-//     } catch (error) {
-//         console.error("Error loading delete page:", error);
-//         req.flash("error", "An error occurred while loading the delete page.");
-//         res.redirect("/admin/manage-listings");
-//     }
-// };
-
-// // Handle listing deletion
-// module.exports.deleteListing = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-
-//         // Find listing
-//         const listing = await Listing.findById(id);
-//         if (!listing) {
-//             req.flash("error", "Listing not found.");
-//             return res.redirect("/admin/manage-listings");
-//         }
-
-//         // Delete images from Cloudinary
-//         if (listing.images && listing.images.length > 0) {
-//             for (let img of listing.images) {
-//                 if (img.filename) {
-//                     await cloudinary.uploader.destroy(img.filename);
-//                 }
-//             }
-//         }
-
-//         // Delete all reviews related to this listing
-//         await Review.deleteMany({ listing: id });
-
-//         // Delete the listing
-//         await Listing.findByIdAndDelete(id);
-
-//         req.flash("success", "Listing deleted successfully.");
-//         res.redirect("/admin/manage-listings");  // ✅ Corrected redirection
-//     } catch (error) {
-//         console.error("Error deleting listing:", error);
-//         req.flash("error", "An error occurred while deleting the listing.");
-//         res.redirect("/admin/manage-listings");  // ✅ Corrected redirection
-//     }
-// };
 module.exports.renderDeletePage = async (req, res) => {
     try {
         const { id } = req.params;
@@ -666,7 +362,6 @@ module.exports.deleteListing = async (req, res) => {
         res.redirect("/admin/manage-listings");
     }
 };
-
 
 module.exports.destroyReview = async (req, res) => {
     try {

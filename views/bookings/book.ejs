@@ -1,24 +1,58 @@
-<%- include("../partials/header.ejs") %>
+<% layout("/layouts/boilerplate") %>
+
+<!-- Bootstrap Datepicker CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+
+<style>
+    .datepicker-dropdown {
+        z-index: 1050 !important; /* Ensure it appears above modals */
+    }
+</style>
 
 <div class="container mt-5">
-  <h2>Book <%= listing.title %></h2>
-  <img src="<%= listing.images.length > 0 ? listing.images[0].url : '/default-image.jpg' %>" class="img-fluid" alt="Listing Image">
-  
-  <form action="/listings/<%= listing._id %>/book" method="POST">
-    <div class="mb-3">
-      <label for="checkIn" class="form-label">Check-in Date</label>
-      <input type="date" id="checkIn" name="checkIn" class="form-control" required>
-    </div>
-
-    <div class="mb-3">
-      <label for="checkOut" class="form-label">Check-out Date</label>
-      <input type="date" id="checkOut" name="checkOut" class="form-control" required>
-    </div>
-
-    <p><strong>Price per night: </strong> &#8377; <%= listing.price.toLocaleString("en-IN") %></p>
+    <h2>Book <%= listing.title %></h2>
+    <br><br>
+    <img src="<%= listing.images.length > 0 ? listing.images[0].url : '/default-image.jpg' %>" class="img-fluid" alt="Listing Image">
+    <br><br>
     
-    <button type="submit" class="btn btn-success">Proceed to Payment</button>
-  </form>
+    <div class="mb-3">
+        <p><strong>Location:</strong> <%= listing.location %>, <%= listing.country %></p>
+        <p><strong>Category - </strong> <%= listing.category %></p>
+        <p><strong>Description - </strong> <%= listing.description %></p>
+        <p><strong>Check-in - </strong> <%= listing.checkInTime %> | <strong>Check-out:</strong> <%= listing.checkOutTime %></p>
+    </div>
+    
+    <br>
+    
+    <form action="/listings/<%= listing._id %>/book" method="POST">
+        <div class="mb-3">
+            <label for="bookingDates"><strong>Select Dates:</strong></label>
+            <input type="text" id="bookingDates" name="bookingDates" class="form-control" placeholder="Select dates" autocomplete="off">
+        </div>
+
+        <p><strong>Price per night: </strong> &#8377; <%= listing.price.toLocaleString("en-IN") %></p>
+        
+        <button type="submit" class="btn btn-success">Proceed to Payment</button>
+    </form>
 </div>
 
-<%- include("../partials/footer.ejs") %>
+<!-- Bootstrap & Datepicker Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        console.log("✅ Initializing Bootstrap Datepicker...");
+
+        $("#bookingDates").datepicker({
+            format: "yyyy-mm-dd",
+            multidate: true,
+            todayHighlight: true,
+            autoclose: false
+        }).on("changeDate", function (e) {
+            console.log("Selected Dates:", e.dates);
+        });
+
+        console.log("✅ Datepicker initialized successfully.");
+    });
+</script>
