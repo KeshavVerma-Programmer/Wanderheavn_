@@ -1,0 +1,27 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container mt-5">
+    <h2>Payment for <%= booking.property.title %></h2>
+    <img src="<%= booking.property.images.length > 0 ? booking.property.images[0].url : '/default-image.jpg' %>" class="img-fluid" alt="Listing Image" style="width: 50%;">
+    <br><br>
+    <div class="mb-3">
+        <p><strong>Location:</strong> <%= booking.property.location %>, <%= booking.property.country %></p>
+        <p><strong>Category:</strong> <%= booking.property.category %></p>
+        <p><strong>Description:</strong> <%= booking.property.description %></p>
+        <p><strong>Price per night:</strong> ₹<%= booking.property.price.toLocaleString("en-IN") %></p>
+    </div>
+
+    <h4>Selected Dates:</h4>
+    <ul>
+        <% booking.bookedDates.forEach(date => { %>
+            <li><%= new Date(date).toDateString() %></li>
+        <% }) %>
+    </ul>
+
+    <h3>Total Price: ₹<%= booking.totalPrice.toLocaleString("en-IN") %></h3>
+    <br>
+    <form action="/payment/<%= booking._id %>" method="POST">
+        <input type="hidden" name="bookingId" value="<%= booking._id %>">
+        <button type="submit" class="btn btn-success">Proceed to Payment</button>
+    </form>
+</div>

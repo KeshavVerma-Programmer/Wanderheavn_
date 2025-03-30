@@ -17,20 +17,7 @@ const bookingSchema = new Schema({
         ref: "User",
         required: true
     },
-    checkInDate: {
-        type: Date,
-        required: true
-    },
-    checkOutDate: {
-        type: Date,
-        required: true,
-        validate: {
-            validator: function (value) {
-                return value > this.checkInDate;
-            },
-            message: "Check-out date must be after check-in date."
-        }
-    },
+    bookedDates: { type: [Date], required: true }, // Store an array of booked dates,
     totalPrice: {
         type: Number,
         min: 0

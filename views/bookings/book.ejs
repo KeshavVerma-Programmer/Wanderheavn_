@@ -44,15 +44,29 @@
     $(document).ready(function () {
         console.log("✅ Initializing Bootstrap Datepicker...");
 
-        $("#bookingDates").datepicker({
+        const $datepicker = $("#bookingDates");
+        const $submitButton = $("button[type='submit']");
+
+        // Disable button initially
+        $submitButton.prop("disabled", true);
+
+        $datepicker.datepicker({
             format: "yyyy-mm-dd",
             multidate: true,
             todayHighlight: true,
             autoclose: false
         }).on("changeDate", function (e) {
             console.log("Selected Dates:", e.dates);
+
+            // Enable button if dates are selected, otherwise disable it
+            if (e.dates.length > 0) {
+                $submitButton.prop("disabled", false);
+            } else {
+                $submitButton.prop("disabled", true);
+            }
         });
 
         console.log("✅ Datepicker initialized successfully.");
     });
 </script>
+
