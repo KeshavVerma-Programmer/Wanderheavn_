@@ -20,7 +20,7 @@
 
     <h3>Total Price: ₹<%= booking.totalPrice.toLocaleString("en-IN") %></h3>
     <br>
-    <form action="/payment/<%= booking._id %>" method="POST">
+    <form action="/listings/<%= booking.property._id %>/payment" method="POST">
         <input type="hidden" name="bookingId" value="<%= booking._id %>">
         <button type="submit" class="btn btn-success">Proceed to Payment</button>
     </form>

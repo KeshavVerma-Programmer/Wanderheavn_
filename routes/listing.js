@@ -84,4 +84,7 @@ router.post("/:id/book", isLoggedIn, wrapAsync(bookingController.createBooking))
 router.get("/:id/payment", isLoggedIn, wrapAsync(bookingController.getPaymentPage));
 router.post("/:id/payment", isLoggedIn, wrapAsync(bookingController.processPayment));
 
+// Confirmation
+router.get("/:id/confirmation", isLoggedIn, wrapAsync(bookingController.getConfirmationPage));
+
 module.exports = router;

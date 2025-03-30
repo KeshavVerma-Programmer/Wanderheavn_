@@ -93,32 +93,47 @@ module.exports.getPaymentPage = async (req, res) => {
 };
 
 module.exports.processPayment = async (req, res) => {
-    const { id } = req.params;
-    const { bookingId } = req.body; // ✅ Correctly get bookingId from form
+    const { bookingId } = req.body; // Booking ID from form
 
     if (!bookingId) {
         req.flash("error", "Invalid payment request.");
-        return res.redirect(`/listings/${id}/payment?bookingId=${bookingId}`);
+        return res.redirect("back");
     }
 
-    try {
-        const booking = await Booking.findById(bookingId).populate("property");
+    const booking = await Booking.findById(bookingId).populate("property");
 
-        if (!booking) {
-            req.flash("error", "Booking not found.");
-            return res.redirect(`/listings/${id}/book`);
-        }
-
-        // 🚀 Simulate Payment Processing (Replace with real payment gateway integration)
-        booking.status = "Paid";
-        await booking.save();
-
-        req.flash("success", "Payment successful! Your booking is confirmed.");
-        res.redirect(`/bookings/${booking._id}/confirmation`);
-    } catch (err) {
-        console.error("❌ Payment processing error:", err);
-        req.flash("error", "Something went wrong during payment.");
-        return res.redirect(`/listings/${id}/payment?bookingId=${bookingId}`);
+    if (!booking) {
+        req.flash("error", "Booking not found.");
+        return res.redirect("back");
     }
+
+    // 🚀 Simulate Payment Processing (Replace this with real payment gateway integration)
+    booking.status = "Paid"; // ✅ Mark as paid
+    await booking.save();
+
+    req.flash("success", "Payment successful! Your booking is confirmed.");
+    
+    // ✅ Redirect to confirmation page
+    res.redirect(`/listings/${booking.property._id}/confirmation?bookingId=${booking._id}`);
 };
+
+module.exports.getConfirmationPage = async (req, res) => {
+    const { bookingId } = req.query;
+
+    if (!bookingId) {
+        req.flash("error", "Invalid booking.");
+        return res.redirect("/listings");
+    }
+
+    const booking = await Booking.findById(bookingId).populate("property");
+
+    if (!booking) {
+        req.flash("error", "Booking not found.");
+        return res.redirect("/listings");
+    }
+
+    res.render("bookings/confirmation", { booking, currUser: req.user });
+};
+
+
 

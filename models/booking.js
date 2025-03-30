@@ -24,7 +24,7 @@ const bookingSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["Active", "Already booked"],
+        enum: ["Active", "Already booked","Paid"],
         default: "Active"
     }
 }, { timestamps: true });
