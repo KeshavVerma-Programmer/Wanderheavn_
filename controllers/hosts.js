@@ -112,17 +112,16 @@ module.exports.hostLogin = (req, res) => {
 // ==========================
 module.exports.renderDashboard = async (req, res) => {
     try {
-        const totalListings = await Listing.countDocuments({ owner: req.user._id }); // Count listings owned by the host
+        const totalListings = await Listing.countDocuments({ owner: req.user._id }); // Count host's listings
 
-        const activeBookings = await Booking.countDocuments({ host: req.user._id, status: "Confirmed" });
-        const pendingRequests = await Booking.countDocuments({ host: req.user._id, status: "Pending" });
+        // Only count bookings that are actually paid
+        const activeBookings = await Booking.countDocuments({ host: req.user._id, status: "Paid" });
 
-        // Calculate total earnings
-        const bookings = await Booking.find({ host: req.user._id, status: "Confirmed" });
+        // Calculate total earnings from successful (Paid) bookings
+        const bookings = await Booking.find({ host: req.user._id, status: "Paid" });
         const totalEarnings = bookings.reduce((sum, booking) => sum + booking.amountPaid, 0);
 
-        // Pass all variables to the template
-        res.render("host/dashboard", { totalListings, activeBookings, pendingRequests, totalEarnings });
+        res.render("host/dashboard", { totalListings, activeBookings, totalEarnings });
     } catch (error) {
         console.error("Dashboard Error:", error);
         req.flash("error", "Failed to load dashboard data.");
