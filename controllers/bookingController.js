@@ -18,7 +18,7 @@ module.exports.createBooking = async (req, res) => {
     const { bookingDates } = req.body;
 
     if (!bookingDates || bookingDates.length === 0) {
-        req.flash("error", "Please select at least one date to proceed with booking.");
+        req.flash("error", "Please select at least two consecutive dates for booking.");
         return res.redirect(`/listings/${id}/book`);
     }
 
@@ -30,6 +30,12 @@ module.exports.createBooking = async (req, res) => {
 
     // Convert selected dates to YYYY-MM-DD format
     const selectedDates = bookingDates.split(",").map(date => new Date(date).toISOString().split("T")[0]);
+
+    // ✅ Ensure at least 2 dates are selected
+    if (selectedDates.length < 2) {
+        req.flash("error", "Please select at least two consecutive dates for booking.");
+        return res.redirect(`/listings/${id}/book`);
+    }
 
     // Ensure bookedDates are also in YYYY-MM-DD format before checking
     const bookedDates = listing.bookedDates.map(date => new Date(date).toISOString().split("T")[0]);
@@ -47,7 +53,7 @@ module.exports.createBooking = async (req, res) => {
         property: id,
         guest: req.user._id,
         host: listing.owner,
-        bookedDates: selectedDates, // Save only booked dates, no check-in/out
+        bookedDates: selectedDates, // Save only booked dates
         totalPrice: selectedDates.length * listing.price,
         status: "Active"
     });
@@ -61,6 +67,7 @@ module.exports.createBooking = async (req, res) => {
     req.flash("success", "Booking confirmed! Proceed to payment.");
     res.redirect(`/listings/${id}/payment?bookingId=${newBooking._id}`); // ✅ Pass bookingId in query
 };
+
 
 module.exports.getPaymentPage = async (req, res) => {
     const { id } = req.params;
