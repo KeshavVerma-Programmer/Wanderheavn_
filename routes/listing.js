@@ -87,4 +87,15 @@ router.post("/:id/payment", isLoggedIn, wrapAsync(bookingController.processPayme
 // Confirmation
 router.get("/:id/confirmation", isLoggedIn, wrapAsync(bookingController.getConfirmationPage));
 
+router.get("/category/:category", async (req, res) => {
+  const { category } = req.params;
+  if (!["apartment", "villa", "cabin", "bungalow", "resort", "camping"].includes(category.toLowerCase())) {
+      req.flash("error", "Invalid category.");
+      return res.redirect("/listings");
+  }
+  const listings = await Listing.find({ category: category.toLowerCase() });
+  res.render("listings/index", { allListings: listings, category });
+});
+
+
 module.exports = router;
