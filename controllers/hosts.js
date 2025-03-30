@@ -165,10 +165,21 @@ module.exports.addListing = async (req, res) => {
 // ==========================
 // MANAGE BOOKINGS
 // ==========================
+
 module.exports.manageBookings = async (req, res) => {
-    const bookings = await Booking.find({ host: req.user._id });
-    res.render("host/manageBookings", { bookings });
+    try {
+        const bookings = await Booking.find({ host: req.user._id })
+            .populate("property") // ✅ Ensure property details are included
+            .populate("guest");  // ✅ Populate guest details too if needed
+
+        res.render("host/manageBookings", { bookings });
+    } catch (err) {
+        console.error("Error fetching bookings:", err);
+        req.flash("error", "Something went wrong while fetching bookings.");
+        res.redirect("/host/dashboard");
+    }
 };
+
 
 // ==========================
 // LOGOUT
