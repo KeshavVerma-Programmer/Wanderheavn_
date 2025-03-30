@@ -6,6 +6,7 @@ const { cloudinary } = require("../cloudConfig");
 const axios = require("axios"); 
 const mapToken = process.env.MAP_TOKEN;
 const Review=require("../models/review");
+
 // ==========================
 // HOST SIGNUP
 // ==========================
@@ -312,5 +313,40 @@ module.exports.deleteReviewAsHost = async (req, res) => {
         console.error("Error deleting review as host:", error);
         req.flash("error", "Failed to delete review. Try again.");
         res.redirect(`/listings/${listingId}`);
+    }
+};
+
+module.exports.renderHostAnalytics = async (req, res) => {
+    try {
+        const hostId = req.user._id;
+
+        const paidBookings = await Booking.find({ host: hostId, status: "Paid" });
+        const totalEarnings = paidBookings.reduce((sum, booking) => sum + booking.amountPaid, 0);
+
+        const totalBookings = paidBookings.length;
+
+        const listingCounts = await Booking.aggregate([
+            { $match: { host: hostId, status: "Paid" } },
+            { $group: { _id: "$property", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 1 }
+        ]);
+        let mostBookedListing = "No Bookings Yet";
+        if (listingCounts.length > 0) {
+            const listing = await Listing.findById(listingCounts[0]._id);
+            mostBookedListing = listing ? listing.title : "Unknown Listing";
+        }
+
+        const monthlyEarnings = await Booking.aggregate([
+            { $match: { host: hostId, status: "Paid" } },
+            { $group: { _id: { $month: "$createdAt" }, total: { $sum: "$amountPaid" } } },
+            { $sort: { _id: 1 } }
+        ]);
+
+        res.render("host/analytics", { totalEarnings, totalBookings, mostBookedListing, monthlyEarnings });
+    } catch (error) {
+        console.error("Analytics Error:", error);
+        req.flash("error", "Failed to load analytics.");
+        res.redirect("/host/dashboard");
     }
 };

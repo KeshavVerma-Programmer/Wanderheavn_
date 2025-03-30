@@ -18,7 +18,7 @@ const {
     approveListing,
     rejectListing,
     featureListing
- ,manageHosts,deleteHosts,viewListing,renderEditForm,updateListing,renderDeletePage,deleteListing,destroyReview,viewAllReviews,deleteReview
+ ,manageHosts,deleteHosts,viewListing,renderEditForm,updateListing,renderDeletePage,deleteListing,destroyReview,viewAllReviews,deleteReview,renderAdminAnalytics
 } = require("../controllers/admin");
 
 
@@ -110,4 +110,6 @@ router.delete('/listings/:id/reviews/:reviewId', isLoggedIn, checkDeletePermissi
 router.get("/profile", isAdminLoggedIn, (req, res) => {
     res.render("admin/profile", { admin: req.user });
 });
+
+router.get("/analytics", isAdmin, renderAdminAnalytics);
 module.exports = router;

@@ -16,7 +16,7 @@ const {
     manageBookings,
     approveBooking,
     rejectBooking,
-    logout,renderEditForm,updateListing,destroyListing,deleteReviewAsHost
+    logout,renderEditForm,updateListing,destroyListing,deleteReviewAsHost,renderHostAnalytics
 } = require("../controllers/hosts");
 const multer = require("multer");
 const { storage } = require("../cloudConfig");
@@ -93,13 +93,15 @@ router.get("/listings/:id/edit",isLoggedIn,isHost, renderEditForm);
 
 router.put("/listings/:id",
     isLoggedIn,
-  isHost,
+    isHost,
     upload.single("listing[images]"),
   updateListing
   );
 
-  router.delete("/listings/:id",isLoggedIn, isHost,wrapAsync(destroyListing));
+router.delete("/listings/:id",isLoggedIn, isHost,wrapAsync(destroyListing));
 
-  router.delete("/listings/:listingId/reviews/:reviewId", isLoggedIn, isHostOrAdmin, wrapAsync(deleteReviewAsHost));
+router.delete("/listings/:listingId/reviews/:reviewId", isLoggedIn, isHostOrAdmin, wrapAsync(deleteReviewAsHost));
+
+router.get("/analytics", isHost, wrapAsync(renderHostAnalytics));
 
 module.exports = router;

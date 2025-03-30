@@ -4,10 +4,12 @@ const User = require("../models/user");
 const Listing = require("../models/listing");
 const Review = require("../models/review");
 const Host = require("../models/host");
+const Booking = require("../models/booking");
 const mongoose = require("mongoose"); // For ID validation
 const { cloudinary } = require("../cloudConfig");
 const axios = require("axios"); 
 const mapToken = process.env.MAP_TOKEN;
+
 // const fetch = require("node-fetch");
 // ==========================
 // ADMIN LOGIN
@@ -419,5 +421,51 @@ module.exports.deleteReview = async (req, res) => {
         console.error("Error deleting review:", error);
         req.flash("error", "Failed to delete review.");
         res.redirect("/admin/listings/manage-reviews");
+    }
+};
+
+module.exports.renderAdminAnalytics = async (req, res) => {
+    try {
+        const totalHosts = await Host.countDocuments();
+        const totalListings = await Listing.countDocuments();
+        const totalBookings = await Booking.countDocuments({ status: "Paid" });
+
+        // Calculate total revenue from successful bookings
+        const paidBookings = await Booking.find({ status: "Paid" });
+        const totalRevenue = paidBookings.reduce((sum, booking) => sum + booking.amountPaid, 0);
+
+        // Find the most booked listing
+        const listingCounts = await Booking.aggregate([
+            { $match: { status: "Paid" } },
+            { $group: { _id: "$property", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 1 }
+        ]);
+
+        let mostBookedListing = "No Bookings Yet";
+        if (listingCounts.length > 0) {
+            const listing = await Listing.findById(listingCounts[0]._id);
+            mostBookedListing = listing ? listing.title : "Unknown Listing";
+        }
+
+        // Monthly Revenue Chart Data
+        const monthlyRevenue = await Booking.aggregate([
+            { $match: { status: "Paid" } },
+            { $group: { _id: { $month: "$createdAt" }, total: { $sum: "$amountPaid" } } },
+            { $sort: { _id: 1 } }
+        ]);
+
+        res.render("admin/analytics", { 
+            totalHosts, 
+            totalListings, 
+            totalBookings, 
+            totalRevenue, 
+            mostBookedListing, 
+            monthlyRevenue 
+        });
+    } catch (error) {
+        console.error("Admin Analytics Error:", error);
+        req.flash("error", "Failed to load analytics.");
+        res.redirect("/admin/dashboard");
     }
 };
